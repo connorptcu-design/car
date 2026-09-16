@@ -193,12 +193,32 @@
 
   /* ---------- contact form ---------- */
   var form = document.querySelector('form.book');
-  if (form && !form.getAttribute('action')) {
+  if (form) {
     form.addEventListener('submit', function (e) {
       e.preventDefault();
+      var btn = form.querySelector('button[type="submit"]');
       var s = $('sent');
-      if (s) s.style.display = 'block';
-      form.reset();
+      if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+
+      fetch(form.action, {
+        method: 'POST',
+        headers: { Accept: 'application/json' },
+        body: new FormData(form)
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error('send failed');
+          if (s) s.style.display = 'block';
+          form.reset();
+        })
+        .catch(function () {
+          if (s) {
+            s.textContent = 'Something went wrong sending that. Please email connorptcu@outlook.com directly.';
+            s.style.display = 'block';
+          }
+        })
+        .finally(function () {
+          if (btn) { btn.disabled = false; btn.textContent = 'Send'; }
+        });
     });
   }
 })();
