@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>For successors — Carry Forward</title>
+<meta name="description" content="You were promised equity. Work out what kind it is, what it costs, and what you are worth to the person offering it." />
+<link rel="stylesheet" href="assets/site.css" />
+</head>
+<body>
+
+<header>
+  <div class="w nav">
+    <a class="mark" href="index.html">Carry<span>&nbsp;Forward</span></a>
+    <button class="burger" id="burger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    <ul class="links" id="links">
+      <li><a href="founders.html">For founders</a></li>
+      <li><a href="successors.html">For successors</a></li>
+      <li><a href="how-we-work.html">How we work</a></li>
+      <li><a href="about.html">About</a></li>
+    </ul>
+    <div class="navtools"><a class="btn" href="index.html#book">Book a call</a></div>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="w">
+    <div class="eyebrow alt">For the next generation</div>
+    <h1>You were promised equity. Nobody has told you what that means.</h1>
+    <p class="lede">
+      Four completely different things get called equity in advisory firms. Two of them leave you
+      owning something. Before you negotiate the percentage, find out which one is on the table.
+    </p>
+    <div class="cta">
+      <a class="btn" href="#buyin">Work out the buy-in</a>
+      <a class="btn ghost" href="index.html#book">Book a review</a>
+    </div>
+  </div>
+</div>
+
+<section>
+  <div class="w">
+    <h2>Ask which of these it is, in these words</h2>
+    <div class="qa">
+      <div class="q">
+        <p><strong>Real equity.</strong> Shares or units you buy and then own.</p>
+        <em>The only version you can sell. It is also the only one you have to fund, which is why
+        firms often offer one of the others and use the same word.</em>
+      </div>
+      <div class="q">
+        <p><strong>Profits interest.</strong> A share of everything the firm becomes worth above today's value.</p>
+        <em>Genuinely good and badly underused. No cheque up front, because the threshold is set at
+        today's value, so you are only paid on what you help create. It lives in an LLC and needs
+        an 83(b) election filed within thirty days. Miss that window and the whole thing becomes
+        ordinary income.</em>
+      </div>
+      <div class="q">
+        <p><strong>Phantom equity or appreciation rights.</strong> A future cash payment that tracks what equity would have been worth.</p>
+        <em>A bonus plan with a spreadsheet attached. It can pay real money, but you own nothing,
+        you cannot sell it, it usually dies if you leave, and the firm can often amend the plan.</em>
+      </div>
+      <div class="q">
+        <p><strong>Revenue or profit share.</strong> A percentage of what the firm brings in.</p>
+        <em>Not equity in any sense. Reasonable as compensation, unreasonable as an answer to the
+        ownership question.</em>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="buyin" class="alt">
+  <div class="w">
+    <h2>What the buy-in would actually cost you</h2>
+    <p class="muted" style="max-width:62ch">
+      Firm cash flow is not your cash flow. This is the version that determines whether you can
+      live while you pay for it.
+    </p>
+
+    <div class="calc">
+      <div class="calc-grid">
+        <div>
+          <div class="f">
+            <label for="bProfit"><span>Firm profit after owners are paid market wages</span><output id="bProfitOut">—</output></label>
+            <input type="range" id="bProfit" min="200" max="12000" step="25" value="1800" />
+          </div>
+          <div class="f">
+            <label for="bMult"><span>Multiple the firm would fetch</span><output id="bMultOut">—</output></label>
+            <input type="range" id="bMult" min="3" max="14" step="0.1" value="7.5" />
+          </div>
+          <div class="f">
+            <label for="bStake"><span>Share being offered to you</span><output id="bStakeOut">—</output></label>
+            <input type="range" id="bStake" min="1" max="50" step="1" value="15" />
+          </div>
+          <div class="f">
+            <label for="bDisc"><span>Discount off market price for an internal buyer</span><output id="bDiscOut">—</output></label>
+            <input type="range" id="bDisc" min="0" max="45" step="1" value="15" />
+          </div>
+          <div class="f">
+            <label for="bPayout"><span>Share of profit the firm actually distributes</span><output id="bPayoutOut">—</output></label>
+            <input type="range" id="bPayout" min="0" max="100" step="5" value="60" />
+          </div>
+          <div class="f">
+            <label for="bComp"><span>Your compensation today</span><output id="bCompOut">—</output></label>
+            <input type="range" id="bComp" min="80" max="1200" step="5" value="265" />
+          </div>
+          <div class="f">
+            <label for="bDown"><span>Cash you can put down</span><output id="bDownOut">—</output></label>
+            <input type="range" id="bDown" min="0" max="800" step="5" value="60" />
+          </div>
+          <div class="f">
+            <label for="bYears"><span>Financing term</span><output id="bYearsOut">—</output></label>
+            <input type="range" id="bYears" min="3" max="15" step="1" value="10" />
+          </div>
+          <div class="f">
+            <label for="bRate"><span>Interest rate</span><output id="bRateOut">—</output></label>
+            <input type="range" id="bRate" min="4" max="13" step="0.25" value="7.5" />
+          </div>
+          <div class="f">
+            <label for="bTax"><span>Your effective tax rate</span><output id="bTaxOut">—</output></label>
+            <input type="range" id="bTax" min="15" max="50" step="1" value="35" />
+          </div>
+        </div>
+
+        <div>
+          <div class="result">
+            <div class="muted small">What you would pay for the stake</div>
+            <div class="big" id="bPrice">—</div>
+            <div class="muted small" style="margin-top:6px">in a firm worth <span id="bEv">—</span></div>
+          </div>
+          <div style="margin-top:18px">
+            <div class="row"><span>Annual debt service</span><b id="bDebt" style="color:var(--drag)">—</b></div>
+            <div class="row"><span>Profit allocated to you on a K-1</span><b id="bK1">—</b></div>
+            <div class="row"><span>Cash actually distributed to you</span><b id="bDist">—</b></div>
+            <div class="row"><span>Tax you owe on the allocation</span><b id="bOwed" style="color:var(--drag)">—</b></div>
+            <div class="row tot"><span><strong>Net cash from owning it</strong></span><b id="bNet">—</b></div>
+            <div class="row tot"><span><strong>Effect on your yearly cash flow</strong></span><b id="bSwing">—</b></div>
+          </div>
+
+          <div class="pull warn" id="bWarn" hidden>
+            <b>You would owe tax on money you never receive</b>
+            <span id="bWarnText"></span>
+          </div>
+
+          <div class="pull alt">
+            <b>What this means</b>
+            <span id="bNote">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="w narrow">
+    <h2>What your staying is worth to them</h2>
+    <p>
+      A buyer prices a firm on whether the clients stay once the founder leaves. If you are the
+      reason they would, the firm is worth meaningfully more with you in it than without you. For
+      a mid-sized practice that gap often runs to seven figures.
+    </p>
+    <p>
+      Nobody has told you that number, and it is your entire negotiating position. Do not use it
+      as a threat. Use it as the shared problem it actually is: the firm is worth more if the
+      clients know you, and neither of you gets there without a written agreement and three years
+      of joint meetings. You are asking to be pointed at the thing that makes you both money.
+    </p>
+    <div class="pull alt">
+      <b>Hire your own lawyer</b>
+      The firm's counsel represents the firm, which in practice means the founder. They may be a
+      good person who likes you. They are still not your lawyer, and the few thousand dollars is
+      the best-spent money in the entire transaction.
+    </div>
+  </div>
+</section>
+
+<section class="last">
+  <div class="w narrow">
+    <h2>The buy-in review</h2>
+    <div class="ladder">
+      <div class="step">
+        <div>
+          <h3>Two weeks, fixed fee</h3>
+          <p>
+            What you are actually being offered, what it is worth, whether you can carry it against
+            your real income, what your staying is worth to the firm, and the ten things that have
+            to be in the document before you sign. Priced for an individual paying personally,
+            because that is who buys it.
+          </p>
+        </div>
+        <div class="price">$2,000</div>
+      </div>
+    </div>
+    <p class="muted" style="margin-top:16px">
+      Confidential, and we do not contact your firm. If it later makes sense to bring the founder
+      into the conversation, that is your call and your timing.
+    </p>
+    <p style="margin-top:22px"><a class="btn" href="index.html#book">Book a review</a></p>
+  </div>
+</section>
+
+<footer>
+  <div class="w">
+    <div class="fnav">
+      <a href="index.html">Home</a>
+      <a href="founders.html">For founders</a>
+      <a href="how-we-work.html">How we work</a>
+      <a href="about.html">About</a>
+    </div>
+    <p>
+      Nothing on this site is investment, legal or tax advice. Tax treatment of profits interests,
+      phantom plans and purchase notes varies with structure, entity and jurisdiction, and small
+      drafting differences change the outcome materially.
+    </p>
+    <p>&copy; <span id="yr"></span> Carry Forward.</p>
+  </div>
+</footer>
+
+<script src="assets/site.js"></script>
+</body>
+</html>
