@@ -1,6 +1,60 @@
 (function () {
   'use strict';
 
+  /* ---------- access gate ---------- */
+  (function () {
+    var HASH = 'e8587be3e9a332cb0bb6821907eed6f0e151c8deb7ce1864a04949f227a81c61';
+    var KEY = 'cf_auth';
+    try {
+      if (sessionStorage.getItem(KEY) === '1') {
+        document.documentElement.classList.remove('gate-locked');
+        return;
+      }
+    } catch (e) {}
+    if (!document.documentElement.classList.contains('gate-locked')) return;
+
+    function sha256Hex(str) {
+      return crypto.subtle.digest('SHA-256', new TextEncoder().encode(str)).then(function (buf) {
+        return Array.prototype.map.call(new Uint8Array(buf), function (b) {
+          return b.toString(16).padStart(2, '0');
+        }).join('');
+      });
+    }
+
+    var overlay = document.createElement('div');
+    overlay.className = 'gate-overlay';
+    overlay.innerHTML =
+      '<div class="gate-box">' +
+        '<h1>Private preview</h1>' +
+        '<p>This site is not public yet. Enter the password to continue.</p>' +
+        '<form id="gateForm">' +
+          '<input type="password" id="gatePw" autocomplete="off" autofocus />' +
+          '<button class="btn" type="submit">Enter</button>' +
+          '<div class="err" id="gateErr">Wrong password.</div>' +
+        '</form>' +
+      '</div>';
+    document.body.appendChild(overlay);
+
+    var form = overlay.querySelector('#gateForm');
+    var pw = overlay.querySelector('#gatePw');
+    var err = overlay.querySelector('#gateErr');
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      sha256Hex(pw.value).then(function (hex) {
+        if (hex === HASH) {
+          try { sessionStorage.setItem(KEY, '1'); } catch (e2) {}
+          document.documentElement.classList.remove('gate-locked');
+          overlay.remove();
+        } else {
+          err.style.display = 'block';
+          pw.value = '';
+          pw.focus();
+        }
+      });
+    });
+  })();
+
   /* ---------- helpers ---------- */
   function money(v) {
     if (Math.abs(v) >= 1e6) return '$' + (v / 1e6).toFixed(Math.abs(v) >= 1e7 ? 1 : 2) + 'M';

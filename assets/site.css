@@ -121,4 +121,14 @@ form.book textarea{min-height:92px;resize:vertical}
 
 footer{padding:42px 0 58px;font-size:13.5px;color:var(--muted)}
 footer a{color:var(--muted)}
+
+/* ---------- access gate ---------- */
+html.gate-locked body>*:not(.gate-overlay){display:none!important}
+.gate-overlay{position:fixed;inset:0;background:var(--ground);display:flex;align-items:center;justify-content:center;z-index:100;padding:22px}
+.gate-box{background:var(--panel);border:1px solid var(--rule);border-radius:3px;padding:30px;max-width:340px;width:100%}
+.gate-box h1{font-size:22px;margin-bottom:6px}
+.gate-box p{font-size:14px;color:var(--muted);margin-bottom:18px}
+.gate-box input{width:100%;font:inherit;font-size:15px;padding:10px 11px;border:1px solid var(--rule);border-radius:2px;background:#fff;color:var(--ink);margin-bottom:10px}
+.gate-box button{width:100%}
+.gate-box .err{color:var(--drag);font-size:13px;margin-top:10px;display:none}
 footer .fnav{display:flex;flex-wrap:wrap;gap:18px;margin-bottom:16px}
