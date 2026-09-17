@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Practice Value and Exit Paths</title>
+<style>
+  html,body{margin:0;padding:0;background:#E7EAE7;min-height:100%}
+  #root{min-height:100vh}
+  .boot{font-family:ui-sans-serif,system-ui,sans-serif;padding:40px 22px;color:#5F6E71}
+</style>
+</head>
+<body>
+<div id="root"><div class="boot">Loading…</div></div>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script>
+var useState = React.useState, useMemo = React.useMemo, useEffect = React.useEffect;
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+const money = n => "$" + Math.round(n).toLocaleString("en-US");
+const short = n => {
+  if (n >= 1000000) return "$" + (n / 1000000).toFixed(n >= 10000000 ? 1 : 2) + "M";
+  if (n >= 1000) return "$" + Math.round(n / 1000) + "k";
+  return "$" + Math.round(n);
+};
+const CHANNELS = [{
+  id: "ria",
+  label: "Independent RIA",
+  adj: 0.2
+}, {
+  id: "hybrid",
+  label: "Independent broker-dealer",
+  adj: 0.0
+}, {
+  id: "wire",
+  label: "Wirehouse or employee channel",
+  adj: 0.0
+}];
+const TEAMS = [{
+  id: "solo",
+  label: "Just me",
+  adj: -0.45
+}, {
+  id: "junior",
+  label: "One junior advisor",
+  adj: 0.0
+}, {
+  id: "g2",
+  label: "A second-generation team that owns relationships",
+  adj: 0.35
+}];
+const LTCG = 0.238;
+const ORDINARY = 0.37;
+function PracticeValue() {
+  const [channel, setChannel] = useState("hybrid");
+  const [aum, setAum] = useState(210); // $ millions
+  const [rev, setRev] = useState(1470); // $ thousands, T12
+  const [feeMix, setFeeMix] = useState(72); // % recurring
+  const [clientAge, setClientAge] = useState(68);
+  const [conc, setConc] = useState(31); // top 10 households, % of revenue
+  const [growth, setGrowth] = useState(4); // 3-yr organic revenue growth %
+  const [retention, setRetention] = useState(96);
+  const [team, setTeam] = useState("solo");
+  const [margin, setMargin] = useState(31); // owner-adjusted profit margin %
+  const [showSummary, setShowSummary] = useState(false);
+  const model = useMemo(() => {
+    const t12 = rev * 1000;
+    let base;
+    if (t12 < 300000) base = 2.0;else if (t12 < 750000) base = 2.3;else if (t12 < 1500000) base = 2.6;else if (t12 < 3000000) base = 2.9;else base = 3.2;
+    const channelAdj = CHANNELS.find(c => c.id === channel).adj;
+    const teamAdj = TEAMS.find(t => t.id === team).adj;
+    const lines = [{
+      key: "mix",
+      label: "Revenue that recurs each year",
+      detail: feeMix + "% recurring, against a 65% norm",
+      adj: clamp((feeMix - 65) * 0.014, -0.55, 0.55)
+    }, {
+      key: "age",
+      label: "Average client age",
+      detail: clientAge + " years old, against a 61 norm",
+      adj: clamp((61 - clientAge) * 0.035, -0.5, 0.5)
+    }, {
+      key: "conc",
+      label: "Revenue in the top ten households",
+      detail: conc + "%, against a 25% norm",
+      adj: clamp((25 - conc) * 0.012, -0.4, 0.4)
+    }, {
+      key: "growth",
+      label: "Organic growth over three years",
+      detail: growth + "% a year, against a 5% norm",
+      adj: clamp((growth - 5) * 0.055, -0.45, 0.45)
+    }, {
+      key: "ret",
+      label: "Client retention",
+      detail: retention + "%, against a 95% norm",
+      adj: clamp((retention - 95) * 0.05, -0.35, 0.35)
+    }, {
+      key: "team",
+      label: "Who else the clients trust",
+      detail: TEAMS.find(t => t.id === team).label,
+      adj: teamAdj
+    }, {
+      key: "chan",
+      label: "Ownership structure",
+      detail: CHANNELS.find(c => c.id === channel).label,
+      adj: channelAdj
+    }];
+    const total = lines.reduce((s, l) => s + l.adj, 0);
+    const mult = clamp(base + total, 1.2, 5.0);
+    const value = t12 * mult;
+    const low = value * 0.89;
+    const high = value * 1.11;
+    const ebitda = t12 * (margin / 100);
+    const ebitdaMult = ebitda > 0 ? value / ebitda : 0;
+    return {
+      t12,
+      base,
+      lines,
+      total,
+      mult,
+      value,
+      low,
+      high,
+      ebitda,
+      ebitdaMult
+    };
+  }, [rev, feeMix, clientAge, conc, growth, retention, team, channel, margin]);
+  const paths = useMemo(() => {
+    const V = model.value;
+    const note = (principal, years, rate) => {
+      const r = rate / 12;
+      const n = years * 12;
+      const pmt = principal * r / (1 - Math.pow(1 + r, -n));
+      return pmt * n;
+    };
+    const build = p => {
+      const headline = V * p.factor;
+      const cash = headline * p.cashPct;
+      const carried = headline * (p.notePct || 0);
+      const carriedTotal = carried > 0 ? note(carried, p.noteYears, p.noteRate) : 0;
+      const equity = headline * (p.equityPct || 0);
+      const earn = headline * (p.earnPct || 0) * (p.earnHit || 0);
+      const gross = cash + carriedTotal + equity + earn;
+      const afterTax = gross * p.goodwill * (1 - LTCG) + gross * (1 - p.goodwill) * (1 - ORDINARY);
+      return {
+        ...p,
+        headline,
+        cash,
+        gross,
+        afterTax
+      };
+    };
+    return [build({
+      id: "internal",
+      name: "Internal succession",
+      blurb: "Sell to your own next generation over time.",
+      factor: 0.87,
+      cashPct: 0.2,
+      notePct: 0.8,
+      noteYears: 8,
+      noteRate: 0.065,
+      goodwill: 0.7,
+      years: 8,
+      risk: "You carry the buyer's credit. If they can't grow it, you're financing your own retirement."
+    }), build({
+      id: "aggregator",
+      name: "Aggregator or platform",
+      blurb: "Large cash payment, equity in someone else's firm, retention hurdles.",
+      factor: 1.08,
+      cashPct: 0.65,
+      equityPct: 0.25,
+      earnPct: 0.1,
+      earnHit: 0.8,
+      goodwill: 0.85,
+      years: 3,
+      risk: "The rollover equity is illiquid until the platform sells again, and you no longer set the terms."
+    }), build({
+      id: "external",
+      name: "Open-market sale",
+      blurb: "Competitive process with an outside buyer.",
+      factor: 1.0,
+      cashPct: 0.55,
+      notePct: 0.3,
+      noteYears: 5,
+      noteRate: 0.06,
+      earnPct: 0.15,
+      earnHit: 0.75,
+      goodwill: 0.9,
+      years: 5,
+      risk: "Client transition risk sits in the earnout. Every household that leaves comes out of your number."
+    })];
+  }, [model]);
+  const levers = useMemo(() => {
+    const recompute = over => {
+      const s = {
+        feeMix,
+        clientAge,
+        conc,
+        growth,
+        retention,
+        team,
+        channel,
+        ...over
+      };
+      const t12 = rev * 1000;
+      let base;
+      if (t12 < 300000) base = 2.0;else if (t12 < 750000) base = 2.3;else if (t12 < 1500000) base = 2.6;else if (t12 < 3000000) base = 2.9;else base = 3.2;
+      const adj = clamp((s.feeMix - 65) * 0.014, -0.55, 0.55) + clamp((61 - s.clientAge) * 0.035, -0.5, 0.5) + clamp((25 - s.conc) * 0.012, -0.4, 0.4) + clamp((s.growth - 5) * 0.055, -0.45, 0.45) + clamp((s.retention - 95) * 0.05, -0.35, 0.35) + TEAMS.find(t => t.id === s.team).adj + CHANNELS.find(c => c.id === s.channel).adj;
+      return t12 * clamp(base + adj, 1.2, 5.0);
+    };
+    const out = [];
+    if (feeMix < 95) out.push({
+      label: "Move another 20% of revenue onto a recurring fee",
+      delta: recompute({
+        feeMix: Math.min(100, feeMix + 20)
+      }) - model.value
+    });
+    if (team !== "g2") out.push({
+      label: "Give a second advisor real ownership of relationships",
+      delta: recompute({
+        team: "g2"
+      }) - model.value
+    });
+    if (conc > 15) out.push({
+      label: "Bring the top ten households down ten points of revenue",
+      delta: recompute({
+        conc: Math.max(10, conc - 10)
+      }) - model.value
+    });
+    out.push({
+      label: "Add three points of organic growth a year",
+      delta: recompute({
+        growth: growth + 3
+      }) - model.value
+    });
+    if (clientAge > 60) out.push({
+      label: "Bring the average client age down five years",
+      delta: recompute({
+        clientAge: clientAge - 5
+      }) - model.value
+    });
+    return out.sort((a, b) => b.delta - a.delta).slice(0, 4);
+  }, [feeMix, clientAge, conc, growth, retention, team, channel, rev, model.value]);
+  const wire = channel === "wire";
+  const programAward = model.t12 * 1.75;
+  const programAfterTax = programAward * (1 - ORDINARY);
+  const bestIndependent = Math.max(...paths.map(p => p.afterTax));
+  const drags = model.lines.filter(l => l.adj < -0.05).sort((a, b) => a.adj - b.adj).slice(0, 3);
+  const summary = ["Practice snapshot", "Trailing twelve months of revenue: " + short(model.t12) + " on " + aum + "M of assets", "Estimated enterprise value: " + short(model.low) + " to " + short(model.high), "Implied multiple: " + model.mult.toFixed(2) + "x revenue, " + model.ebitdaMult.toFixed(1) + "x owner-adjusted profit", "", "What is holding the number down", ...(drags.length ? drags.map(d => "  " + d.label + " (" + d.detail + ") costs about " + short(Math.abs(d.adj) * model.t12)) : ["  Nothing material. This book prices at or above its size cohort."]), "", "Highest-value moves", ...levers.map(l => "  " + l.label + ": " + short(l.delta)), "", "Paths out, after tax", ...paths.map(p => "  " + p.name + ": " + short(p.cash) + " at close, " + short(p.afterTax) + " net over " + p.years + " years"), "", "Estimate only. Not an appraisal, and not tax or legal advice."].join("\n");
+  return /*#__PURE__*/React.createElement("div", {
+    className: "pv-root"
+  }, /*#__PURE__*/React.createElement("style", null, `
+        .pv-root {
+          --ground: #E7EAE7;
+          --panel: #FBFBF9;
+          --ink: #16292E;
+          --muted: #5F6E71;
+          --rule: #C7CEC9;
+          --rule-soft: #DDE2DD;
+          --gain: #2C6A4F;
+          --drag: #8A3B2C;
+          --brass: #94702F;
+          --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+          --sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+          background: var(--ground);
+          color: var(--ink);
+          font-family: var(--sans);
+          font-size: 15px;
+          line-height: 1.5;
+          padding: 28px 20px 56px;
+          min-height: 100%;
+        }
+        .pv-wrap { max-width: 1080px; margin: 0 auto; }
+        .pv-title {
+          font-family: var(--serif);
+          font-size: 34px;
+          line-height: 1.12;
+          letter-spacing: -0.01em;
+          margin: 0 0 8px;
+          font-weight: 500;
+        }
+        .pv-lede { color: var(--muted); max-width: 60ch; margin: 0 0 26px; }
+        .pv-grid { display: grid; grid-template-columns: 330px 1fr; gap: 22px; align-items: start; }
+        @media (max-width: 860px) { .pv-grid { grid-template-columns: 1fr; } }
+        .pv-panel {
+          background: var(--panel);
+          border: 1px solid var(--rule);
+          border-radius: 3px;
+          padding: 20px;
+        }
+        .pv-sec {
+          font-family: var(--serif);
+          font-size: 19px;
+          font-weight: 500;
+          margin: 0 0 4px;
+        }
+        .pv-note { color: var(--muted); font-size: 13px; margin: 0 0 16px; }
+        .pv-field { margin-bottom: 16px; }
+        .pv-lab { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 5px; }
+        .pv-lab span:first-child { font-size: 13.5px; }
+        .pv-val { font-family: var(--serif); font-size: 16px; font-variant-numeric: tabular-nums; }
+        input[type=range] { width: 100%; accent-color: #2C6A4F; height: 20px; }
+        .pv-seg { display: flex; flex-direction: column; gap: 5px; }
+        .pv-opt {
+          text-align: left;
+          font: inherit;
+          font-size: 13.5px;
+          padding: 8px 11px;
+          border: 1px solid var(--rule);
+          border-radius: 2px;
+          background: transparent;
+          color: var(--ink);
+          cursor: pointer;
+        }
+        .pv-opt[data-on="true"] { background: var(--ink); color: #F4F6F3; border-color: var(--ink); }
+        .pv-opt:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+
+        .pv-head { display: flex; flex-wrap: wrap; gap: 30px; align-items: flex-end; }
+        .pv-range {
+          font-family: var(--serif);
+          font-size: 40px;
+          line-height: 1.05;
+          font-variant-numeric: tabular-nums;
+          letter-spacing: -0.015em;
+        }
+        .pv-sub { color: var(--muted); font-size: 13px; margin-top: 6px; }
+        .pv-stat { font-family: var(--serif); font-size: 26px; font-variant-numeric: tabular-nums; }
+
+        .pv-ledger { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+        .pv-ledger td { padding: 9px 0; border-bottom: 1px solid var(--rule-soft); vertical-align: top; }
+        .pv-ledger tr:last-child td { border-bottom: none; }
+        .pv-l1 { font-size: 14px; }
+        .pv-l2 { color: var(--muted); font-size: 12.5px; }
+        .pv-num { text-align: right; font-family: var(--serif); font-size: 15.5px; white-space: nowrap; padding-left: 14px; }
+        .pv-bar { height: 4px; border-radius: 2px; margin-top: 6px; }
+        .pv-total td { border-top: 1.5px solid var(--ink); border-bottom: none; padding-top: 12px; font-size: 15px; }
+
+        .pv-paths { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+        @media (max-width: 780px) { .pv-paths { grid-template-columns: 1fr; } }
+        .pv-path { border: 1px solid var(--rule); border-radius: 3px; padding: 15px; background: var(--panel); }
+        .pv-path h4 { font-family: var(--serif); font-size: 18px; margin: 0 0 4px; font-weight: 500; }
+        .pv-row { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--rule-soft); font-size: 13px; }
+        .pv-row b { font-family: var(--serif); font-size: 15px; font-weight: 500; font-variant-numeric: tabular-nums; }
+        .pv-risk { font-size: 12.5px; color: var(--muted); margin-top: 11px; }
+
+        .pv-callout { border-left: 3px solid var(--brass); background: #F6F2E9; padding: 15px 17px; border-radius: 2px; margin-top: 18px; }
+        .pv-lever { display: flex; justify-content: space-between; gap: 14px; align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--rule-soft); }
+        .pv-lever:last-child { border-bottom: none; }
+        .pv-lever b { font-family: var(--serif); font-size: 17px; color: var(--gain); white-space: nowrap; }
+        .pv-ask { padding: 11px 0; border-bottom: 1px solid var(--rule-soft); font-size: 14px; }
+        .pv-ask:last-child { border-bottom: none; }
+        .pv-ask em { color: var(--muted); font-style: normal; font-size: 13px; display: block; margin-top: 3px; }
+        .pv-stack > * + * { margin-top: 20px; }
+        .pv-btn {
+          font: inherit; font-size: 13.5px; background: transparent; border: 1px solid var(--rule);
+          border-radius: 2px; padding: 7px 13px; cursor: pointer; color: var(--ink);
+        }
+        textarea.pv-out {
+          width: 100%; margin-top: 12px; min-height: 260px; font-family: ui-monospace, Menlo, Consolas, monospace;
+          font-size: 12px; line-height: 1.55; padding: 12px; border: 1px solid var(--rule);
+          border-radius: 2px; background: #FFF; color: var(--ink); resize: vertical;
+        }
+        .pv-foot { color: var(--muted); font-size: 12.5px; margin-top: 26px; max-width: 78ch; }
+      `), /*#__PURE__*/React.createElement("div", {
+    className: "pv-wrap"
+  }, /*#__PURE__*/React.createElement("h1", {
+    className: "pv-title"
+  }, "What your practice is worth, and what it costs to wait"), /*#__PURE__*/React.createElement("p", {
+    className: "pv-lede"
+  }, "Most advisors find out what their book is worth once, at the moment they sell it. This shows the number now, the reasons behind it, and what each path out actually pays after tax."), /*#__PURE__*/React.createElement("div", {
+    className: "pv-grid"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "pv-panel"
+  }, /*#__PURE__*/React.createElement("h2", {
+    className: "pv-sec"
+  }, "Your practice"), /*#__PURE__*/React.createElement("p", {
+    className: "pv-note"
+  }, "Nine facts. Estimates are fine."), /*#__PURE__*/React.createElement("div", {
+    className: "pv-field"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "pv-lab"
+  }, /*#__PURE__*/React.createElement("span", null, "How the practice is held")), /*#__PURE__*/React.createElement("div", {
+    className: "pv-seg"
+  }, CHANNELS.map(c => /*#__PURE__*/React.createElement("button", {
+    key: c.id,
+    className: "pv-opt",
+    "data-on": channel === c.id,
+    onClick: () => setChannel(c.id)
+  }, c.label)))), /*#__PURE__*/React.createElement(Slider, {
+    label: "Assets under management",
+    value: aum,
+    set: setAum,
+    min: 10,
+    max: 1200,
+    step: 5,
+    display: "$" + aum + "M"
+  }), /*#__PURE__*/React.createElement(Slider, {
+    label: "Revenue, last twelve months",
+    value: rev,
+    set: setRev,
+    min: 100,
+    max: 8000,
+    step: 10,
+    display: short(rev * 1000)
+  }), /*#__PURE__*/React.createElement(Slider, {
+    label: "Revenue that recurs each year",
+    value: feeMix,
+    set: setFeeMix,
+    min: 0,
+    max: 100,
+    step: 1,
+    display: feeMix + "%"
+  }), /*#__PURE__*/React.createElement(Slider, {
+    label: "Average client age",
+    value: clientAge,
+    set: setClientAge,
+    min: 40,
+    max: 82,
+    step: 1,
+    display: clientAge
+  }), /*#__PURE__*/React.createElement(Slider, {
+    label: "Revenue in your top ten households",
+    value: conc,
+    set: setConc,
+    min: 5,
+    max: 80,
+    step: 1,
+    display: conc + "%"
+  }), /*#__PURE__*/React.createElement(Slider, {
+    label: "Organic growth, three-year average",
+    value: growth,
+    set: setGrowth,
+    min: -6,
+    max: 20,
+    step: 1,
+    display: growth + "%"
+  }), /*#__PURE__*/React.createElement(Slider, {
+    label: "Client retention",
+    value: retention,
+    set: setRetention,
+    min: 80,
+    max: 100,
+    step: 1,
+    display: retention + "%"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "pv-field"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "pv-lab"
+  }, /*#__PURE__*/React.createElement("span", null, "Who else the clients trust")), /*#__PURE__*/React.createElement("div", {
+    className: "pv-seg"
+  }, TEAMS.map(t => /*#__PURE__*/React.createElement("button", {
+    key: t.id,
+    className: "pv-opt",
+    "data-on": team === t.id,
+    onClick: () => setTeam(t.id)
+  }, t.label)))), /*#__PURE__*/React.createElement(Slider, {
+    label: "Profit margin before your own pay",
+    value: margin,
+    set: setMargin,
+    min: 10,
+    max: 60,
+    step: 1,
+    display: margin + "%"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "pv-stack"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "pv-panel"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "pv-head"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "pv-range"
+  }, short(model.low), " to ", short(model.high)), /*#__PURE__*/React.createElement("div", {
+    className: "pv-sub"
+  }, "Enterprise value, independent basis")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "pv-stat"
+  }, model.mult.toFixed(2), "×"), /*#__PURE__*/React.createElement("div", {
+    className: "pv-sub"
+  }, "revenue")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "pv-stat"
+  }, model.ebitdaMult.toFixed(1), "×"), /*#__PURE__*/React.createElement("div", {
+    className: "pv-sub"
+  }, "profit before owner pay"))), wire && /*#__PURE__*/React.createElement("div", {
+    className: "pv-callout"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: "var(--serif)",
+      fontSize: 18,
+      marginBottom: 6
+    }
+  }, "Your firm's retirement program pays about ", short(programAward)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13.5,
+      color: "var(--muted)"
+    }
+  }, "That is roughly 175% of trailing production, paid over four years and taxed as ordinary income, so about ", short(programAfterTax), " lands in your pocket. The same book owned independently nets around ", short(bestIndependent), " after tax. The gap of ", short(bestIndependent - programAfterTax), " is the price of the affiliation. It is not a reason to move. It is a number you should know before you sign the program paperwork, because signing it usually ends the conversation."))), /*#__PURE__*/React.createElement("div", {
+    className: "pv-panel"
+  }, /*#__PURE__*/React.createElement("h2", {
+    className: "pv-sec"
+  }, "Where the number comes from"), /*#__PURE__*/React.createElement("p", {
+    className: "pv-note"
+  }, "Every practice starts at a multiple set by its size. Everything after that is something you control."), /*#__PURE__*/React.createElement("table", {
+    className: "pv-ledger"
+  }, /*#__PURE__*/React.createElement("tbody", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("div", {
+    className: "pv-l1"
+  }, "Starting multiple for a book this size"), /*#__PURE__*/React.createElement("div", {
+    className: "pv-l2"
+  }, short(model.t12), " of trailing revenue")), /*#__PURE__*/React.createElement("td", {
+    className: "pv-num"
+  }, model.base.toFixed(2), "×"), /*#__PURE__*/React.createElement("td", {
+    className: "pv-num",
+    style: {
+      color: "var(--muted)"
+    }
+  }, short(model.t12 * model.base))), model.lines.map(l => {
+    const pos = l.adj >= 0;
+    const c = Math.abs(l.adj) < 0.01 ? "var(--muted)" : pos ? "var(--gain)" : "var(--drag)";
+    return /*#__PURE__*/React.createElement("tr", {
+      key: l.key
+    }, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("div", {
+      className: "pv-l1"
+    }, l.label), /*#__PURE__*/React.createElement("div", {
+      className: "pv-l2"
+    }, l.detail), /*#__PURE__*/React.createElement("div", {
+      className: "pv-bar",
+      style: {
+        width: Math.max(2, Math.abs(l.adj) / 0.55 * 100) + "%",
+        maxWidth: "100%",
+        background: c,
+        opacity: Math.abs(l.adj) < 0.01 ? 0.25 : 0.85
+      }
+    })), /*#__PURE__*/React.createElement("td", {
+      className: "pv-num",
+      style: {
+        color: c
+      }
+    }, pos ? "+" : "\u2212", Math.abs(l.adj).toFixed(2), "×"), /*#__PURE__*/React.createElement("td", {
+      className: "pv-num",
+      style: {
+        color: c
+      }
+    }, pos ? "+" : "\u2212", short(Math.abs(l.adj) * model.t12)));
+  }), /*#__PURE__*/React.createElement("tr", {
+    className: "pv-total"
+  }, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("b", null, "Where you land")), /*#__PURE__*/React.createElement("td", {
+    className: "pv-num"
+  }, /*#__PURE__*/React.createElement("b", null, model.mult.toFixed(2), "×")), /*#__PURE__*/React.createElement("td", {
+    className: "pv-num"
+  }, /*#__PURE__*/React.createElement("b", null, short(model.value))))))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    className: "pv-sec",
+    style: {
+      marginBottom: 2
+    }
+  }, "Three ways out of the same book"), /*#__PURE__*/React.createElement("p", {
+    className: "pv-note"
+  }, "Headline prices are not comparable. These are, because they account for how the money is paid and how it is taxed."), /*#__PURE__*/React.createElement("div", {
+    className: "pv-paths"
+  }, paths.map(p => /*#__PURE__*/React.createElement("div", {
+    className: "pv-path",
+    key: p.id
+  }, /*#__PURE__*/React.createElement("h4", null, p.name), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: "var(--muted)",
+      marginBottom: 10
+    }
+  }, p.blurb), /*#__PURE__*/React.createElement("div", {
+    className: "pv-row"
+  }, /*#__PURE__*/React.createElement("span", null, "Headline price"), /*#__PURE__*/React.createElement("b", null, short(p.headline))), /*#__PURE__*/React.createElement("div", {
+    className: "pv-row"
+  }, /*#__PURE__*/React.createElement("span", null, "Cash at closing"), /*#__PURE__*/React.createElement("b", null, short(p.cash))), /*#__PURE__*/React.createElement("div", {
+    className: "pv-row"
+  }, /*#__PURE__*/React.createElement("span", null, "Total collected"), /*#__PURE__*/React.createElement("b", null, short(p.gross))), /*#__PURE__*/React.createElement("div", {
+    className: "pv-row",
+    style: {
+      borderBottom: "none"
+    }
+  }, /*#__PURE__*/React.createElement("span", null, "Yours after tax"), /*#__PURE__*/React.createElement("b", {
+    style: {
+      color: "var(--gain)"
+    }
+  }, short(p.afterTax))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: "var(--muted)",
+      marginTop: 4
+    }
+  }, "Fully paid out in about ", p.years, " years."), /*#__PURE__*/React.createElement("div", {
+    className: "pv-risk"
+  }, p.risk))))), /*#__PURE__*/React.createElement("div", {
+    className: "pv-panel"
+  }, /*#__PURE__*/React.createElement("h2", {
+    className: "pv-sec"
+  }, "What the next few years are worth"), /*#__PURE__*/React.createElement("p", {
+    className: "pv-note"
+  }, "Value created by changing the practice, not by selling it."), levers.map((l, i) => /*#__PURE__*/React.createElement("div", {
+    className: "pv-lever",
+    key: i
+  }, /*#__PURE__*/React.createElement("span", null, l.label), /*#__PURE__*/React.createElement("b", null, l.delta > 0 ? "+" : "", short(l.delta))))), /*#__PURE__*/React.createElement("div", {
+    className: "pv-panel"
+  }, /*#__PURE__*/React.createElement("h2", {
+    className: "pv-sec"
+  }, "Questions this raises"), /*#__PURE__*/React.createElement("p", {
+    className: "pv-note"
+  }, "The ones worth answering before a buyer asks them for you."), drags.length === 0 && /*#__PURE__*/React.createElement("div", {
+    className: "pv-ask"
+  }, "This book prices above its cohort on every driver. The question is timing, not repair.", /*#__PURE__*/React.createElement("em", null, "What would have to be true for you to sell in the next thirty-six months?")), drags.map(d => /*#__PURE__*/React.createElement("div", {
+    className: "pv-ask",
+    key: d.key
+  }, ASKS[d.key].q, /*#__PURE__*/React.createElement("em", null, ASKS[d.key].why))), /*#__PURE__*/React.createElement("div", {
+    className: "pv-ask"
+  }, "If you were hit by a bus tomorrow, who calls your clients, and what does your family get paid?", /*#__PURE__*/React.createElement("em", null, "Roughly two-thirds of advisors have no written continuity agreement. Without one, a book this size is worth a fraction of ", short(model.value), " to an estate."))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("button", {
+    className: "pv-btn",
+    onClick: () => setShowSummary(s => !s)
+  }, showSummary ? "Hide written summary" : "Show written summary"), showSummary && /*#__PURE__*/React.createElement("textarea", {
+    className: "pv-out",
+    readOnly: true,
+    value: summary,
+    onFocus: e => e.target.select()
+  })))), /*#__PURE__*/React.createElement("p", {
+    className: "pv-foot"
+  }, "An estimate built from public transaction norms, not an appraisal, and not tax or legal advice. Ranges assume a clean transition, no litigation or regulatory history, and a normal deal market. Tax figures use a 23.8% long-term capital gains rate and a 37% ordinary rate with no state tax. Anyone acting on this should get a formal valuation and have counsel and a tax advisor price the structure.")));
+}
+const ASKS = {
+  mix: {
+    q: "How much of your revenue would still arrive if you stopped selling anything new tomorrow?",
+    why: "Recurring revenue is the single largest driver of what a buyer will pay. Transactional revenue is treated as a bet on your continued effort."
+  },
+  age: {
+    q: "Of your twenty largest households, how many are already drawing down?",
+    why: "A buyer prices the assets that remain in ten years, not the ones on the statement today."
+  },
+  conc: {
+    q: "Which single client leaving would change how you feel about your year?",
+    why: "Concentration is priced as risk. The buyer assumes the largest relationships are yours personally and may not transfer."
+  },
+  growth: {
+    q: "Where did your last five new households come from, and can that happen without you?",
+    why: "Flat books are bought as run-off. Growing books are bought as businesses, and the difference shows up in the multiple."
+  },
+  ret: {
+    q: "What did the clients who left last year have in common?",
+    why: "Retention below the mid-nineties reads as a service model problem, and buyers underwrite it into the earnout."
+  },
+  team: {
+    q: "Which of your clients would take a meeting without you in the room?",
+    why: "If the answer is none, you are not selling a practice. You are selling your own calendar, and it prices accordingly."
+  },
+  chan: {
+    q: "Do you own this book, or does it revert to your firm when you retire?",
+    why: "Ownership determines whether there is an enterprise to value at all."
+  }
+};
+function Slider({
+  label,
+  value,
+  set,
+  min,
+  max,
+  step,
+  display
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "pv-field"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "pv-lab"
+  }, /*#__PURE__*/React.createElement("span", null, label), /*#__PURE__*/React.createElement("span", {
+    className: "pv-val"
+  }, display)), /*#__PURE__*/React.createElement("input", {
+    type: "range",
+    min: min,
+    max: max,
+    step: step,
+    value: value,
+    onChange: e => set(Number(e.target.value)),
+    "aria-label": label
+  }));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(PracticeValue));
+</script>
+</body>
+</html>
