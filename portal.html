@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Advisor Portal — Carry Forward</title>
+<link rel="stylesheet" href="assets/site.css" />
+<style>
+  .gate{max-width:420px;margin:0 auto}
+  .gate form{background:var(--panel);border:1px solid var(--rule);border-radius:3px;padding:26px}
+  .gate input{width:100%;font:inherit;font-size:16px;padding:11px 12px;border:1px solid var(--rule);
+    border-radius:2px;background:#fff;color:var(--ink);letter-spacing:.06em}
+  .gate label{display:block;font-size:13.5px;margin-bottom:6px}
+  .gate .err{color:var(--drag);font-size:13.5px;margin-top:12px;display:none}
+  #portalBody{display:none}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="w nav">
+    <a class="mark" href="index.html">Carry<span>&nbsp;Forward</span></a>
+    <div class="navtools"><span class="muted small" id="navState">Advisor Portal</span></div>
+  </div>
+</header>
+
+<!-- ---------- gate ---------- -->
+<div id="gate">
+  <section class="last" style="padding-top:72px">
+    <div class="w gate">
+      <div class="eyebrow" style="text-align:center">Advisor Portal</div>
+      <h2 style="text-align:center;margin-bottom:22px">Enter your access code</h2>
+      <form id="gateForm" autocomplete="off">
+        <label for="pw">Access code</label>
+        <input id="pw" type="password" autocomplete="current-password" autofocus />
+        <button class="btn" type="submit" style="margin-top:14px;width:100%">Enter</button>
+        <div class="err" id="err">That code is not recognised. Try again.</div>
+      </form>
+      <p class="muted small" style="text-align:center;margin-top:18px">
+        Access codes are issued with each engagement. If yours is not working, just reply to my
+        last email.
+      </p>
+    </div>
+  </section>
+</div>
+
+<!-- ---------- portal ---------- -->
+<div id="portalBody">
+  <div class="hero">
+    <div class="w">
+      <div class="eyebrow">Advisor Portal</div>
+      <h1>Your workspace</h1>
+      <p class="lede">
+        The models from your engagement, live and adjustable. Everything you change stays in your
+        browser — nothing is saved or sent anywhere, so run whatever scenarios you want.
+      </p>
+    </div>
+  </div>
+
+  <section class="last">
+    <div class="w">
+      <div class="doors">
+        <div class="door">
+          <h3>Readiness program</h3>
+          <p class="muted" style="font-size:14.5px">
+            Seven linked diagnostics: team structure and capacity, client transferability, the
+            income statement restated the way a buyer restates it, what a single partner's stake is
+            worth, the diligence scorecard, the discovery sequence, and the value at stake.
+          </p>
+          <a class="btn" href="tools/readiness.html">Open</a>
+        </div>
+        <div class="door">
+          <h3>Practice value and exit paths</h3>
+          <p class="muted" style="font-size:14.5px">
+            The valuation built up line by line, then the three paths out compared on what each
+            actually nets after tax rather than on headline price.
+          </p>
+          <a class="btn" href="tools/practice-value.html">Open</a>
+        </div>
+        <div class="door">
+          <h3>Buy-in evaluation</h3>
+          <p class="muted" style="font-size:14.5px">
+            For the next generation. What is being offered, what it costs against real income, and
+            the ten things that must be in the document.
+          </p>
+          <a class="btn" href="tools/buy-in.html">Open</a>
+        </div>
+      </div>
+      <p class="muted small" style="margin-top:26px">
+        <a href="#" id="signout">Sign out</a> &nbsp;·&nbsp; Your session ends when you close the browser.
+      </p>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <div class="w">
+    <p>Estimates and planning frameworks, not appraisals, and not tax, legal or investment advice.</p>
+    <p>&copy; <span id="yr"></span> Carry Forward.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var HASH = 'e8587be3e9a332cb0bb6821907eed6f0e151c8deb7ce1864a04949f227a81c61';
+  var KEY  = 'cf_portal';
+  var gate = document.getElementById('gate');
+  var body = document.getElementById('portalBody');
+  document.getElementById('yr').textContent = new Date().getFullYear();
+
+  function show(){ gate.style.display='none'; body.style.display='block'; }
+
+  async function sha(s){
+    var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+    return Array.from(new Uint8Array(buf)).map(function(b){
+      return b.toString(16).padStart(2,'0'); }).join('');
+  }
+
+  try { if (sessionStorage.getItem(KEY) === HASH) show(); } catch(e){}
+
+  document.getElementById('gateForm').addEventListener('submit', async function(e){
+    e.preventDefault();
+    var v = document.getElementById('pw').value.trim();
+    var h;
+    try { h = await sha(v); } catch(err) { h = null; }
+    if (h === HASH) {
+      try { sessionStorage.setItem(KEY, HASH); } catch(e){}
+      show();
+    } else {
+      document.getElementById('err').style.display='block';
+      document.getElementById('pw').value='';
+      document.getElementById('pw').focus();
+    }
+  });
+
+  var so = document.getElementById('signout');
+  if (so) so.addEventListener('click', function(e){
+    e.preventDefault();
+    try { sessionStorage.removeItem(KEY); } catch(err){}
+    location.reload();
+  });
+})();
+</script>
+</body>
+</html>
