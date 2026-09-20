@@ -107,7 +107,9 @@
       else if (rev < 750000) base = 2.3;
       else if (rev < 1500000) base = 2.6;
       else if (rev < 3000000) base = 2.9;
-      else base = 3.2;
+      else if (rev < 8000000) base = 3.2;
+      else if (rev < 15000000) base = 3.4;
+      else base = 3.6;
 
       var mixAdj = clamp((fee - 65) * 0.014, -0.55, 0.55);
       var ageAdj = clamp((61 - age) * 0.035, -0.50, 0.50);
@@ -129,6 +131,9 @@
       set('prepared', money(prepared));
       var d = prepared - val;
       set('delta', (d >= 0 ? '+' : '') + money(d));
+
+      var bfn = $('bigFirmNote');
+      if (bfn) bfn.style.display = rev >= 5000000 ? 'block' : 'none';
 
       var vb = $('verdict'), vt = $('verdictText');
       if (!vb || !vt) return;

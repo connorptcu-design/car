@@ -126,7 +126,7 @@
         <div>
           <div class="f">
             <label for="rev"><span>Revenue, last twelve months</span><output id="revOut">$1.5M</output></label>
-            <input type="range" id="rev" min="150" max="8000" step="50" value="1500" />
+            <input type="range" id="rev" min="150" max="30000" step="50" value="1500" />
           </div>
           <div class="f">
             <label for="fee"><span>Share of revenue that recurs each year</span><output id="feeOut">72%</output></label>
@@ -177,6 +177,10 @@
         </div>
       </div>
     </div>
+    <p class="muted small" id="bigFirmNote" style="margin-top:14px;display:none">
+      Firms this size are usually priced on adjusted profit rather than revenue, so treat this as
+      a rough guide. The full readiness model prices on profit.
+    </p>
   </div>
 </section>
 
