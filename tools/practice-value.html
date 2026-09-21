@@ -470,11 +470,11 @@ function PracticeValue() {
     "data-on": team === t.id,
     onClick: () => setTeam(t.id)
   }, t.label)))), /*#__PURE__*/React.createElement(Slider, {
-    label: "Profit margin before your own pay",
+    label: "Profit margin before compensation",
     value: margin,
     set: setMargin,
     min: 10,
-    max: 60,
+    max: 100,
     step: 1,
     display: margin + "%"
   })), /*#__PURE__*/React.createElement("div", {
@@ -495,7 +495,7 @@ function PracticeValue() {
     className: "pv-stat"
   }, model.ebitdaMult.toFixed(1), "×"), /*#__PURE__*/React.createElement("div", {
     className: "pv-sub"
-  }, "profit before owner pay"))), wire && /*#__PURE__*/React.createElement("div", {
+  }, "profit before compensation"))), wire && /*#__PURE__*/React.createElement("div", {
     className: "pv-callout"
   }, /*#__PURE__*/React.createElement("div", {
     style: {
