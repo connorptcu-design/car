@@ -262,6 +262,12 @@ function TransitionProgram() {
   const [buySell, setBuySell] = useState(false);
   const [founderAge, setFounderAge] = useState(63);
 
+  // capacity and growth
+  const [capPerLead, setCapPerLead] = useState(100);
+  const [capPerAssoc, setCapPerAssoc] = useState(40);
+  const [growthTarget, setGrowthTarget] = useState(6);
+  const [capWorkOpen, setCapWorkOpen] = useState(false);
+
   // transferability
   const [soleRel, setSoleRel] = useState(58);
   const [secondMet, setSecondMet] = useState(35);
@@ -490,8 +496,103 @@ function TransitionProgram() {
       pros
     };
   }, [leads, assoc, service, ops, households, rev]);
+  const growthCap = useMemo(() => {
+    const clientCapacity = leads * capPerLead + assoc * capPerAssoc;
+    const teamMembers = leads + assoc + service + ops;
+    const weeklyMgmtHours = 2 * teamMembers + 8;
+    const leaderAbsorbed = leadership ? Math.min(40, weeklyMgmtHours) : 0;
+    const hoursOnLeads = Math.max(0, weeklyMgmtHours - leaderAbsorbed);
+    const managementDrag = leads > 0 ? clamp(hoursOnLeads / (leads * 45), 0, 0.6) : 0;
+    const effectiveCapacity = clientCapacity * (1 - managementDrag);
+    const utilization = effectiveCapacity > 0 ? households / effectiveCapacity : 0;
+    const openCapacity = effectiveCapacity - households;
+    const growthRate = growthTarget / 100;
+    const runway = utilization >= 1 || growthRate <= 0 || households <= 0 || effectiveCapacity <= 0 ? 0 : Math.log(effectiveCapacity / households) / Math.log(1 + growthRate);
+    const effCapPerLead = leads > 0 ? effectiveCapacity / leads : 0;
+    const leadsNeededNow = effCapPerLead > 0 ? Math.ceil(households / (0.9 * effCapPerLead)) : 0;
+    const householdsIn3 = households * Math.pow(1 + growthRate, 3);
+    const leadsNeededIn3 = effCapPerLead > 0 ? Math.ceil(householdsIn3 / (0.9 * effCapPerLead)) : 0;
+    return {
+      clientCapacity,
+      teamMembers,
+      weeklyMgmtHours,
+      leaderAbsorbed,
+      hoursOnLeads,
+      managementDrag,
+      effectiveCapacity,
+      utilization,
+      openCapacity,
+      runway,
+      effCapPerLead,
+      leadsNeededNow,
+      householdsIn3,
+      leadsNeededIn3
+    };
+  }, [leads, assoc, service, ops, households, leadership, capPerLead, capPerAssoc, growthTarget]);
   const mObj = FIRM_MODELS.find(m => m.id === fmodel);
   const TABS = [["team", "Team"], ["transfer", "Transferability"], ["econ", "Economics"], ["stake", "Your stake"], ["ready", "Readiness"], ["ask", "Discovery"], ["case", "The case"]];
+  let capVerdictHead, capVerdictBody;
+  if (growthCap.utilization > 1) {
+    capVerdictHead = "Over capacity.";
+    capVerdictBody = "The firm is already serving more households than its advisors can cover well. Organic growth stalls here not for lack of demand, but because nobody has time to take the meeting, and a buyer will price in the service risk.";
+  } else if (growthCap.utilization >= 0.85) {
+    capVerdictHead = "Near capacity.";
+    capVerdictBody = `There is room for about ${Math.max(0, Math.round(growthCap.openCapacity))} more households, roughly ${growthCap.runway.toFixed(1)} years at your growth target, before growth requires another advisor.`;
+  } else {
+    capVerdictHead = "Room to grow.";
+    capVerdictBody = `At your growth target the current team can absorb about ${growthCap.runway.toFixed(1)} years of new households.`;
+  }
+  const capShowLeaderWarn = !leadership && growthCap.managementDrag > 0.15;
+  const capLeaderWarnBody = `About ${Math.round(growthCap.hoursOnLeads)} hours a week of running the business falls on your advisors, the equivalent of ${(growthCap.managementDrag * leads).toFixed(1)} advisors' worth of client time. Growth needs someone whose job is running the firm, not only serving clients.`;
+  const capWorkLines = [`Client capacity = leads × households per lead + associates × households per associate = ${leads} × ${capPerLead} + ${assoc} × ${capPerAssoc} = ${Math.round(growthCap.clientCapacity)}`, `Team members = leads + associates + service staff + operations staff = ${leads} + ${assoc} + ${service} + ${ops} = ${growthCap.teamMembers}`, `Weekly hours of running the business = 2 × team members + 8 = 2 × ${growthCap.teamMembers} + 8 = ${growthCap.weeklyMgmtHours}`, leadership ? `Leader absorbs up to 40 of those hours; the excess falls on leads = ${growthCap.weeklyMgmtHours} − ${growthCap.leaderAbsorbed} = ${Math.round(growthCap.hoursOnLeads)}` : `There is no non-producing leader, so all of it falls on leads = ${Math.round(growthCap.hoursOnLeads)}`, `Management drag = hours on leads ÷ (leads × 45), capped at 60% = ${Math.round(growthCap.hoursOnLeads)} ÷ (${leads} × 45) = ${pct(growthCap.managementDrag * 100)}`, `Effective capacity = client capacity × (1 − management drag) = ${Math.round(growthCap.clientCapacity)} × (1 − ${pct(growthCap.managementDrag * 100)}) = ${Math.round(growthCap.effectiveCapacity)}`, `Utilisation = households ÷ effective capacity = ${households} ÷ ${Math.round(growthCap.effectiveCapacity)} = ${pct(growthCap.utilization * 100)}`, `Open capacity = effective capacity − households = ${Math.round(growthCap.effectiveCapacity)} − ${households} = ${Math.round(growthCap.openCapacity)}`, `Years of growth runway = ln(effective capacity ÷ households) ÷ ln(1 + growth target) = ${growthCap.runway.toFixed(2)}`, `Effective capacity per lead advisor = effective capacity ÷ leads = ${Math.round(growthCap.effectiveCapacity)} ÷ ${leads} = ${Math.round(growthCap.effCapPerLead)}`, `Lead advisors needed now = round up(households ÷ (0.9 × effective capacity per lead)) = ${growthCap.leadsNeededNow}`, `Lead advisors needed in three years = round up(households × (1 + growth target)³ ÷ (0.9 × effective capacity per lead)) = ${growthCap.leadsNeededIn3}`];
+  const capRows = [["Client households", String(households)], ["Lead advisors", String(leads)], ["Client capacity", Math.round(growthCap.clientCapacity) + " households"], ["Weekly hours of running the business", leadership ? `${Math.round(growthCap.hoursOnLeads)} of ${growthCap.weeklyMgmtHours} hrs falls on leads, ${Math.round(growthCap.leaderAbsorbed)} absorbed by your leader` : `${growthCap.weeklyMgmtHours} hrs a week, all of it on leads`], ["Management drag on lead capacity", pct(growthCap.managementDrag * 100)], ["Effective capacity", Math.round(growthCap.effectiveCapacity) + " households"], ["Utilisation", pct(growthCap.utilization * 100)], ["Open capacity", (growthCap.openCapacity >= 0 ? "+" : "−") + Math.round(Math.abs(growthCap.openCapacity)) + " households"], ["Years of growth runway", growthCap.runway.toFixed(1) + " years"], ["Lead advisors needed now", String(growthCap.leadsNeededNow)], ["Lead advisors needed in three years", String(growthCap.leadsNeededIn3)]];
+  const capPanel = /*#__PURE__*/React.createElement("div", {
+    className: "tp-p"
+  }, /*#__PURE__*/React.createElement("h2", null, "Capacity and growth"), /*#__PURE__*/React.createElement("p", {
+    className: "tp-note"
+  }, "Growth needs open capacity. Running the business quietly spends some of it before a single new client ever shows up."), /*#__PURE__*/React.createElement(Rng, {
+    label: "Households one lead advisor can serve well",
+    unit: "num",
+    v: capPerLead,
+    set: setCapPerLead,
+    min: 50,
+    max: 500,
+    step: 5,
+    d: capPerLead
+  }), /*#__PURE__*/React.createElement(Rng, {
+    label: "Extra households each associate advisor adds",
+    unit: "num",
+    v: capPerAssoc,
+    set: setCapPerAssoc,
+    min: 0,
+    max: 200,
+    step: 5,
+    d: capPerAssoc
+  }), /*#__PURE__*/React.createElement(Rng, {
+    label: "Organic growth target",
+    unit: "pct",
+    v: growthTarget,
+    set: setGrowthTarget,
+    min: 0,
+    max: 20,
+    step: 1,
+    d: pct(growthTarget)
+  }), ...capRows.map(([label, value], i) => /*#__PURE__*/React.createElement("div", {
+    className: "tp-row",
+    key: i
+  }, /*#__PURE__*/React.createElement("span", null, label), /*#__PURE__*/React.createElement("b", null, value))), /*#__PURE__*/React.createElement("div", {
+    className: "tp-call"
+  }, /*#__PURE__*/React.createElement("b", null, capVerdictHead), capVerdictBody), capShowLeaderWarn && /*#__PURE__*/React.createElement("div", {
+    className: "tp-call tp-warn"
+  }, /*#__PURE__*/React.createElement("b", null, "Running the business is eating client capacity"), capLeaderWarnBody), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "tp-toggle",
+    onClick: () => setCapWorkOpen(o => !o)
+  }, capWorkOpen ? "Hide the working" : "Show the working"), capWorkOpen && /*#__PURE__*/React.createElement("div", {
+    className: "tp-work"
+  }, ...capWorkLines.map((line, i) => /*#__PURE__*/React.createElement("p", {
+    key: i
+  }, line)), /*#__PURE__*/React.createElement("p", null, "Per-advisor capacity and hours figures are adjustable estimates, not industry data.")));
   return /*#__PURE__*/React.createElement("div", {
     className: "tp"
   }, /*#__PURE__*/React.createElement("style", null, `
@@ -537,6 +638,11 @@ function TransitionProgram() {
         .tp-tot{border-top:1.5px solid var(--ink);margin-top:6px;padding-top:11px}
         .tp-call{border-left:3px solid var(--brass);background:#F6F2E9;padding:14px 16px;border-radius:2px;margin-top:14px;font-size:13.5px}
         .tp-call b{font-family:var(--serif);font-size:17px;font-weight:500;display:block;margin-bottom:5px}
+        .tp-call.tp-warn{border-left-color:var(--drag);background:#F6EEEB}
+        .tp-toggle{font:inherit;font-size:13px;color:var(--muted);background:transparent;border:none;padding:0;cursor:pointer;text-decoration:underline;margin-top:14px}
+        .tp-toggle:hover{color:var(--ink)}
+        .tp-work{margin-top:10px;padding-top:10px;border-top:1px solid var(--soft)}
+        .tp-work p{margin:0 0 8px;font-size:12.5px;color:var(--muted)}
         .tp-meter{height:6px;background:var(--soft);border-radius:3px;overflow:hidden;margin:8px 0 4px}
         .tp-meter i{display:block;height:100%;background:var(--gain)}
         .tp-sc{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid var(--soft)}
@@ -709,7 +815,7 @@ function TransitionProgram() {
     say: 70 - founderAge < 4 ? "There is not enough runway to fix transferability before this has to happen. Sequence accordingly, and be honest that some value is no longer recoverable." : "Enough runway to move relationships deliberately rather than under pressure."
   }), !buySell && /*#__PURE__*/React.createElement("div", {
     className: "tp-call"
-  }, /*#__PURE__*/React.createElement("b", null, "There is no funded buy-sell"), "Everything else in this program is optional. This is not. Without it, an unexpected death or disability turns ", K(econ.ev), " of enterprise value into a distressed sale run by an estate that has never met a buyer.")))), tab === "transfer" && /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("b", null, "There is no funded buy-sell"), "Everything else in this program is optional. This is not. Without it, an unexpected death or disability turns ", K(econ.ev), " of enterprise value into a distressed sale run by an estate that has never met a buyer."))), capPanel), tab === "transfer" && /*#__PURE__*/React.createElement("div", {
     className: "tp-2"
   }, /*#__PURE__*/React.createElement("div", {
     className: "tp-p"
