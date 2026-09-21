@@ -65,6 +65,66 @@
   function $(id) { return document.getElementById(id); }
   function set(id, text) { var e = $(id); if (e) e.textContent = text; }
 
+  function commas(n) {
+    n = Math.round(n);
+    var neg = n < 0;
+    n = Math.abs(n);
+    var s = String(n), out = '';
+    for (var i = 0; i < s.length; i++) {
+      if (i > 0 && (s.length - i) % 3 === 0) out += ',';
+      out += s[i];
+    }
+    return (neg ? '-' : '') + out;
+  }
+
+  function parseMessyNumber(str) {
+    if (str == null) return NaN;
+    var s = String(str).trim();
+    if (!s) return NaN;
+    s = s.replace(/[$,%\s]/g, '');
+    var m = s.match(/^(-?\d*\.?\d+)([kKmMbB])?$/);
+    if (!m) return NaN;
+    var n = parseFloat(m[1]);
+    if (isNaN(n)) return NaN;
+    var suf = m[2] ? m[2].toLowerCase() : '';
+    if (suf === 'k') n *= 1e3;
+    else if (suf === 'm') n *= 1e6;
+    else if (suf === 'b') n *= 1e9;
+    return n;
+  }
+
+  /* pairs a slider with a typed-number box: box mirrors slider on drag,
+     and commits back to the slider (clamped) on Enter or blur */
+  function bindNumberBox(slider, box, opts) {
+    if (!slider || !box) return;
+    var scale = (opts && opts.scale) || 1;
+    var decimals = (opts && opts.decimals) || 0;
+
+    function display(raw) {
+      return decimals > 0 ? raw.toFixed(decimals) : commas(raw);
+    }
+    function sync() {
+      box.value = display((+slider.value) * scale);
+    }
+    function commit() {
+      var parsed = parseMessyNumber(box.value);
+      if (isNaN(parsed)) { sync(); return; }
+      var sliderVal = clamp(parsed / scale, +slider.min, +slider.max);
+      slider.value = sliderVal;
+      sync();
+      slider.dispatchEvent(new Event('input'));
+      slider.dispatchEvent(new Event('change'));
+    }
+
+    slider.addEventListener('input', sync);
+    box.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); commit(); box.blur(); }
+    });
+    box.addEventListener('blur', commit);
+
+    sync();
+  }
+
   /* ---------- year ---------- */
   var yr = $('yr');
   if (yr) yr.textContent = new Date().getFullYear();
@@ -159,6 +219,12 @@
       el[i].addEventListener('input', calc);
       el[i].addEventListener('change', calc);
     });
+
+    bindNumberBox(el.rev, $('revBox'), { scale: 1000, decimals: 0 });
+    bindNumberBox(el.fee, $('feeBox'), { scale: 1, decimals: 0 });
+    bindNumberBox(el.age, $('ageBox'), { scale: 1, decimals: 0 });
+    bindNumberBox(el.grow, $('growBox'), { scale: 1, decimals: 0 });
+
     calc();
   })();
 
@@ -247,6 +313,18 @@
       el[i].addEventListener('input', calc);
       el[i].addEventListener('change', calc);
     });
+
+    bindNumberBox(el.bProfit, $('bProfitBox'), { scale: 1000, decimals: 0 });
+    bindNumberBox(el.bMult, $('bMultBox'), { scale: 1, decimals: 1 });
+    bindNumberBox(el.bStake, $('bStakeBox'), { scale: 1, decimals: 0 });
+    bindNumberBox(el.bDisc, $('bDiscBox'), { scale: 1, decimals: 0 });
+    bindNumberBox(el.bPayout, $('bPayoutBox'), { scale: 1, decimals: 0 });
+    bindNumberBox(el.bComp, $('bCompBox'), { scale: 1000, decimals: 0 });
+    bindNumberBox(el.bDown, $('bDownBox'), { scale: 1000, decimals: 0 });
+    bindNumberBox(el.bYears, $('bYearsBox'), { scale: 1, decimals: 0 });
+    bindNumberBox(el.bRate, $('bRateBox'), { scale: 1, decimals: 2 });
+    bindNumberBox(el.bTax, $('bTaxBox'), { scale: 1, decimals: 0 });
+
     calc();
   })();
 

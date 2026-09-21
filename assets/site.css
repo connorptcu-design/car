@@ -90,6 +90,10 @@ section.last{border-bottom:none}
 .f{margin-bottom:16px}
 .f label{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13.5px;margin-bottom:5px}
 .f output{font-family:var(--serif);font-size:16px;font-variant-numeric:tabular-nums}
+.numbox{display:inline-flex;align-items:baseline;gap:4px;flex:0 0 auto}
+.numbox-aff{font-family:var(--serif);font-size:13px;color:var(--muted)}
+.numbox-input{width:120px;max-width:40vw;font-family:var(--serif);font-size:16px;font-variant-numeric:tabular-nums;text-align:right;border:1px solid var(--rule);border-radius:2px;padding:4px 8px;background:#fff;color:var(--ink)}
+.numbox-input:focus{outline:none;border-color:var(--accent)}
 input[type=range]{width:100%;accent-color:#2C6A4F;height:20px}
 .alt input[type=range]{accent-color:#3F566B}
 select{width:100%;font:inherit;font-size:14px;padding:9px 10px;border:1px solid var(--rule);border-radius:2px;background:#fff;color:var(--ink)}

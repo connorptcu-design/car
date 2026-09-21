@@ -125,19 +125,27 @@
       <div class="calc-grid">
         <div>
           <div class="f">
-            <label for="rev"><span>Revenue, last twelve months</span><output id="revOut">$1.5M</output></label>
+            <label for="rev"><span>Revenue, last twelve months</span>
+              <span class="numbox"><span class="numbox-aff" aria-hidden="true">$</span><input type="text" inputmode="decimal" id="revBox" class="numbox-input" aria-label="Revenue, last twelve months" value="1,500,000" /></span>
+            </label>
             <input type="range" id="rev" min="150" max="30000" step="50" value="1500" />
           </div>
           <div class="f">
-            <label for="fee"><span>Share of revenue that recurs each year</span><output id="feeOut">72%</output></label>
+            <label for="fee"><span>Share of revenue that recurs each year</span>
+              <span class="numbox"><input type="text" inputmode="decimal" id="feeBox" class="numbox-input" aria-label="Share of revenue that recurs each year" value="72" /><span class="numbox-aff" aria-hidden="true">%</span></span>
+            </label>
             <input type="range" id="fee" min="0" max="100" step="1" value="72" />
           </div>
           <div class="f">
-            <label for="age"><span>Average client age</span><output id="ageOut">66</output></label>
+            <label for="age"><span>Average client age</span>
+              <span class="numbox"><input type="text" inputmode="decimal" id="ageBox" class="numbox-input" aria-label="Average client age" value="66" /></span>
+            </label>
             <input type="range" id="age" min="40" max="82" step="1" value="66" />
           </div>
           <div class="f">
-            <label for="grow"><span>Organic growth, three-year average</span><output id="growOut">4%</output></label>
+            <label for="grow"><span>Organic growth, three-year average</span>
+              <span class="numbox"><input type="text" inputmode="decimal" id="growBox" class="numbox-input" aria-label="Organic growth, three-year average" value="4" /><span class="numbox-aff" aria-hidden="true">%</span></span>
+            </label>
             <input type="range" id="grow" min="-6" max="20" step="1" value="4" />
           </div>
           <div class="f">
