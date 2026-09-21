@@ -40,6 +40,30 @@ const K = n => {
   return "$" + Math.round(v);
 };
 const pct = n => Math.round(n) + "%";
+const commas = n => {
+  n = Math.round(n);
+  const neg = n < 0;
+  n = Math.abs(n);
+  let s = String(n), out = "";
+  for (let i = 0; i < s.length; i++) {
+    if (i > 0 && (s.length - i) % 3 === 0) out += ",";
+    out += s[i];
+  }
+  return (neg ? "-" : "") + out;
+};
+const parseMessyNumber = str => {
+  if (str == null) return NaN;
+  let s = String(str).trim();
+  if (!s) return NaN;
+  s = s.replace(/[$,%\s]/g, "");
+  const m = s.match(/^(-?\d*\.?\d+)([kKmMbB])?$/);
+  if (!m) return NaN;
+  let n = parseFloat(m[1]);
+  if (isNaN(n)) return NaN;
+  const suf = m[2] ? m[2].toLowerCase() : "";
+  if (suf === "k") n *= 1e3;else if (suf === "m") n *= 1e6;else if (suf === "b") n *= 1e9;
+  return n;
+};
 
 /* ---------------------------------------------------------------- models */
 
@@ -498,6 +522,10 @@ function TransitionProgram() {
         .tp-f{margin-bottom:15px}
         .tp-lab{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:4px;font-size:13.5px}
         .tp-lab b{font-family:var(--serif);font-size:16px;font-weight:500;font-variant-numeric:tabular-nums}
+        .tp-box{display:inline-flex;align-items:baseline;gap:4px}
+        .tp-aff{font-family:var(--serif);font-size:13px;color:var(--muted)}
+        .tp-input{width:110px;font-family:var(--serif);font-size:16px;font-variant-numeric:tabular-nums;text-align:right;border:1px solid var(--rule);border-radius:2px;padding:3px 8px;background:#fff;color:var(--ink)}
+        .tp-input:focus{outline:none;border-color:var(--ink)}
         input[type=range]{width:100%;accent-color:#2C6A4F;height:20px}
         .tp-opt{display:block;width:100%;text-align:left;font:inherit;font-size:13.5px;padding:9px 12px;margin-bottom:5px;border:1px solid var(--rule);border-radius:2px;background:transparent;color:var(--ink);cursor:pointer}
         .tp-opt[data-on="true"]{background:var(--ink);color:#F2F5F1;border-color:var(--ink)}
@@ -572,6 +600,7 @@ function TransitionProgram() {
     className: "tp-note"
   }, "Producers and support, counted separately."), /*#__PURE__*/React.createElement(Rng, {
     label: "Revenue",
+    unit: "k",
     v: rev,
     set: setRev,
     min: 500,
@@ -580,6 +609,7 @@ function TransitionProgram() {
     d: K(rev)
   }), /*#__PURE__*/React.createElement(Rng, {
     label: "Client households",
+    unit: "num",
     v: households,
     set: setHouseholds,
     min: 40,
@@ -588,6 +618,7 @@ function TransitionProgram() {
     d: households
   }), /*#__PURE__*/React.createElement(Rng, {
     label: "Lead advisors",
+    unit: "num",
     v: leads,
     set: setLeads,
     min: 1,
@@ -596,6 +627,7 @@ function TransitionProgram() {
     d: leads
   }), /*#__PURE__*/React.createElement(Rng, {
     label: "Associate advisors and planners",
+    unit: "num",
     v: assoc,
     set: setAssoc,
     min: 0,
@@ -604,6 +636,7 @@ function TransitionProgram() {
     d: assoc
   }), /*#__PURE__*/React.createElement(Rng, {
     label: "Client service associates",
+    unit: "num",
     v: service,
     set: setService,
     min: 0,
@@ -612,6 +645,7 @@ function TransitionProgram() {
     d: service
   }), /*#__PURE__*/React.createElement(Rng, {
     label: "Operations and administration",
+    unit: "num",
     v: ops,
     set: setOps,
     min: 0,
@@ -620,6 +654,7 @@ function TransitionProgram() {
     d: ops
   }), /*#__PURE__*/React.createElement(Rng, {
     label: "Age of the founding advisor",
+    unit: "num",
     v: founderAge,
     set: setFounderAge,
     min: 45,
@@ -682,6 +717,7 @@ function TransitionProgram() {
     className: "tp-note"
   }, "Run these from the CRM against the top households, not from the founder's recollection. The two answers are almost never the same, and the gap between them is the finding."), /*#__PURE__*/React.createElement(Rng, {
     label: "Revenue where the founder is the sole relationship",
+    unit: "pct",
     v: soleRel,
     set: setSoleRel,
     min: 0,
@@ -690,6 +726,7 @@ function TransitionProgram() {
     d: pct(soleRel)
   }), /*#__PURE__*/React.createElement(Rng, {
     label: "Top 25 households who met a second team member in 12 months",
+    unit: "pct",
     v: secondMet,
     set: setSecondMet,
     min: 0,
@@ -698,6 +735,7 @@ function TransitionProgram() {
     d: pct(secondMet)
   }), /*#__PURE__*/React.createElement(Rng, {
     label: "Households where the team knows an adult child",
+    unit: "pct",
     v: nextGen,
     set: setNextGen,
     min: 0,
@@ -753,6 +791,7 @@ function TransitionProgram() {
     className: "tp-note"
   }, "A buyer does not price what the owners take home. They price what the business earns once the owners are paid a market wage for the work they do."), /*#__PURE__*/React.createElement(Rng, {
     label: "Revenue",
+    unit: "k",
     v: rev,
     set: setRev,
     min: 500,
@@ -761,6 +800,7 @@ function TransitionProgram() {
     d: K(rev)
   }), /*#__PURE__*/React.createElement(Rng, {
     label: "Total compensation to owners, all forms",
+    unit: "k",
     v: ownerComp,
     set: setOwnerComp,
     min: 0,
@@ -769,6 +809,7 @@ function TransitionProgram() {
     d: K(ownerComp)
   }), /*#__PURE__*/React.createElement(Rng, {
     label: "Revenue the owners personally produce",
+    unit: "k",
     v: ownerProd,
     set: setOwnerProd,
     min: 0,
@@ -777,6 +818,7 @@ function TransitionProgram() {
     d: K(ownerProd)
   }), /*#__PURE__*/React.createElement(Rng, {
     label: "All other operating expenses",
+    unit: "k",
     v: otherExp,
     set: setOtherExp,
     min: 0,
@@ -785,6 +827,7 @@ function TransitionProgram() {
     d: K(otherExp)
   }), /*#__PURE__*/React.createElement(Rng, {
     label: "Personal expenses running through the business",
+    unit: "k",
     v: personalExp,
     set: setPersonalExp,
     min: 0,
@@ -793,6 +836,7 @@ function TransitionProgram() {
     d: K(personalExp)
   }), /*#__PURE__*/React.createElement(Rng, {
     label: "One-time and non-recurring costs",
+    unit: "k",
     v: oneTime,
     set: setOneTime,
     min: 0,
@@ -843,6 +887,7 @@ function TransitionProgram() {
     className: "tp-2"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Rng, {
     label: "Share of equity being sold in this tranche",
+    unit: "pct",
     v: stake,
     set: setStake,
     min: 5,
@@ -851,6 +896,7 @@ function TransitionProgram() {
     d: pct(stake)
   }), /*#__PURE__*/React.createElement(Rng, {
     label: "Discount to market price for an internal buyer",
+    unit: "pct",
     v: internalDisc,
     set: setInternalDisc,
     min: 0,
@@ -859,6 +905,7 @@ function TransitionProgram() {
     d: pct(internalDisc)
   }), /*#__PURE__*/React.createElement(Rng, {
     label: "Financing term",
+    unit: "num",
     v: loanYears,
     set: setLoanYears,
     min: 5,
@@ -867,6 +914,7 @@ function TransitionProgram() {
     d: loanYears + " years"
   }), /*#__PURE__*/React.createElement(Rng, {
     label: "Interest rate",
+    unit: "pct",
     v: loanRate,
     set: setLoanRate,
     min: 4,
@@ -897,6 +945,7 @@ function TransitionProgram() {
     className: "tp-note"
   }, "A share of a firm is not the same asset as the firm. What it is worth depends on who is buying it, whether the buyer ends up in control, and what the partnership agreement already decided years ago."), /*#__PURE__*/React.createElement(Rng, {
     label: "Your ownership of the firm",
+    unit: "pct",
     v: ownPct,
     set: setOwnPct,
     min: 1,
@@ -905,6 +954,7 @@ function TransitionProgram() {
     d: pct(ownPct)
   }), /*#__PURE__*/React.createElement(Rng, {
     label: "How much of your stake you are selling",
+    unit: "pct",
     v: sellShare,
     set: setSellShare,
     min: 5,
@@ -1001,6 +1051,7 @@ function TransitionProgram() {
     className: "tp-p"
   }, /*#__PURE__*/React.createElement("h2", null, "What you actually receive"), stakeDeal.b.rollover ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Rng, {
     label: "Share of the price rolled into the platform",
+    unit: "pct",
     v: rollShare,
     set: setRollShare,
     min: 0,
@@ -1033,6 +1084,7 @@ function TransitionProgram() {
     className: "tp-note"
   }, "The rolled equity is the entire argument for this path. It is also the part nobody can promise, so it is worth modelling both directions before signing."), /*#__PURE__*/React.createElement(Rng, {
     label: "Years until the platform sells again",
+    unit: "num",
     v: holdYears,
     set: setHoldYears,
     min: 3,
@@ -1041,6 +1093,7 @@ function TransitionProgram() {
     d: holdYears + " years"
   }), /*#__PURE__*/React.createElement(Rng, {
     label: "Platform profit growth per year",
+    unit: "pct",
     v: platGrowth,
     set: setPlatGrowth,
     min: 0,
@@ -1049,6 +1102,7 @@ function TransitionProgram() {
     d: pct(platGrowth)
   }), /*#__PURE__*/React.createElement(Rng, {
     label: "Multiple expansion at exit",
+    unit: "pct",
     v: multExp,
     set: setMultExp,
     min: 0,
@@ -1224,6 +1278,7 @@ function TransitionProgram() {
     className: "tp-note"
   }, "Four steps, each of which stands alone and each of which earns the next. Nothing here is contingent on a transaction happening, which is the entire point."), /*#__PURE__*/React.createElement(Rng, {
     label: "Length of the preparation retainer",
+    unit: "num",
     v: programMonths,
     set: setProgramMonths,
     min: 6,
@@ -1321,13 +1376,57 @@ function Rng({
   min,
   max,
   step,
-  d
+  unit
 }) {
+  const scale = unit === "k" ? 1000 : unit === "m" ? 1000000 : 1;
+  const fmt = raw => {
+    if (unit === "k" || unit === "m") return commas(Math.round(raw));
+    let r = Math.round(raw * 100) / 100;
+    if (Object.is(r, -0)) r = 0;
+    return String(r);
+  };
+  const [txt, setTxt] = useState(() => fmt(v * scale));
+  useEffect(() => {
+    setTxt(fmt(v * scale));
+  }, [v, unit]);
+  const commit = () => {
+    const parsed = parseMessyNumber(txt);
+    if (isNaN(parsed)) {
+      setTxt(fmt(v * scale));
+      return;
+    }
+    const next = clamp(parsed / scale, min, max);
+    set(next);
+    setTxt(fmt(next * scale));
+  };
+  const affixPre = unit === "k" || unit === "m" ? "$" : null;
+  const affixPost = unit === "pct" ? "%" : unit === "x" ? "×" : null;
   return /*#__PURE__*/React.createElement("div", {
     className: "tp-f"
   }, /*#__PURE__*/React.createElement("div", {
     className: "tp-lab"
-  }, /*#__PURE__*/React.createElement("span", null, label), /*#__PURE__*/React.createElement("b", null, d)), /*#__PURE__*/React.createElement("input", {
+  }, /*#__PURE__*/React.createElement("span", null, label), /*#__PURE__*/React.createElement("span", {
+    className: "tp-box"
+  }, affixPre && /*#__PURE__*/React.createElement("span", {
+    className: "tp-aff"
+  }, affixPre), /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    inputMode: "decimal",
+    className: "tp-input",
+    value: txt,
+    onChange: e => setTxt(e.target.value),
+    onKeyDown: e => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        commit();
+        e.target.blur();
+      }
+    },
+    onBlur: commit,
+    "aria-label": label
+  }), affixPost && /*#__PURE__*/React.createElement("span", {
+    className: "tp-aff"
+  }, affixPost))), /*#__PURE__*/React.createElement("input", {
     type: "range",
     min: min,
     max: max,

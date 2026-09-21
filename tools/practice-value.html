@@ -39,6 +39,30 @@ const short = n => {
   if (n >= 1000) return "$" + Math.round(n / 1000) + "k";
   return "$" + Math.round(n);
 };
+const commas = n => {
+  n = Math.round(n);
+  const neg = n < 0;
+  n = Math.abs(n);
+  let s = String(n), out = "";
+  for (let i = 0; i < s.length; i++) {
+    if (i > 0 && (s.length - i) % 3 === 0) out += ",";
+    out += s[i];
+  }
+  return (neg ? "-" : "") + out;
+};
+const parseMessyNumber = str => {
+  if (str == null) return NaN;
+  let s = String(str).trim();
+  if (!s) return NaN;
+  s = s.replace(/[$,%\s]/g, "");
+  const m = s.match(/^(-?\d*\.?\d+)([kKmMbB])?$/);
+  if (!m) return NaN;
+  let n = parseFloat(m[1]);
+  if (isNaN(n)) return NaN;
+  const suf = m[2] ? m[2].toLowerCase() : "";
+  if (suf === "k") n *= 1e3;else if (suf === "m") n *= 1e6;else if (suf === "b") n *= 1e9;
+  return n;
+};
 const CHANNELS = [{
   id: "ria",
   label: "Independent RIA",
@@ -315,6 +339,10 @@ function PracticeValue() {
         .pv-lab { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 5px; }
         .pv-lab span:first-child { font-size: 13.5px; }
         .pv-val { font-family: var(--serif); font-size: 16px; font-variant-numeric: tabular-nums; }
+        .pv-box { display: inline-flex; align-items: baseline; gap: 4px; }
+        .pv-aff { font-family: var(--serif); font-size: 13px; color: var(--muted); }
+        .pv-input { width: 110px; font-family: var(--serif); font-size: 16px; font-variant-numeric: tabular-nums; text-align: right; border: 1px solid var(--rule); border-radius: 2px; padding: 3px 8px; background: #fff; color: var(--ink); }
+        .pv-input:focus { outline: none; border-color: var(--ink); }
         input[type=range] { width: 100%; accent-color: #2C6A4F; height: 20px; }
         .pv-seg { display: flex; flex-direction: column; gap: 5px; }
         .pv-opt {
@@ -404,6 +432,7 @@ function PracticeValue() {
     onClick: () => setChannel(c.id)
   }, c.label)))), /*#__PURE__*/React.createElement(Slider, {
     label: "Assets under management",
+    unit: "m",
     value: aum,
     set: setAum,
     min: 10,
@@ -412,6 +441,7 @@ function PracticeValue() {
     display: "$" + aum + "M"
   }), /*#__PURE__*/React.createElement(Slider, {
     label: "Revenue, last twelve months",
+    unit: "k",
     value: rev,
     set: setRev,
     min: 100,
@@ -420,6 +450,7 @@ function PracticeValue() {
     display: short(rev * 1000)
   }), /*#__PURE__*/React.createElement(Slider, {
     label: "Revenue that recurs each year",
+    unit: "pct",
     value: feeMix,
     set: setFeeMix,
     min: 0,
@@ -428,6 +459,7 @@ function PracticeValue() {
     display: feeMix + "%"
   }), /*#__PURE__*/React.createElement(Slider, {
     label: "Average client age",
+    unit: "num",
     value: clientAge,
     set: setClientAge,
     min: 40,
@@ -436,6 +468,7 @@ function PracticeValue() {
     display: clientAge
   }), /*#__PURE__*/React.createElement(Slider, {
     label: "Revenue in your top ten households",
+    unit: "pct",
     value: conc,
     set: setConc,
     min: 5,
@@ -444,6 +477,7 @@ function PracticeValue() {
     display: conc + "%"
   }), /*#__PURE__*/React.createElement(Slider, {
     label: "Organic growth, three-year average",
+    unit: "pct",
     value: growth,
     set: setGrowth,
     min: -6,
@@ -452,6 +486,7 @@ function PracticeValue() {
     display: growth + "%"
   }), /*#__PURE__*/React.createElement(Slider, {
     label: "Client retention",
+    unit: "pct",
     value: retention,
     set: setRetention,
     min: 80,
@@ -471,6 +506,7 @@ function PracticeValue() {
     onClick: () => setTeam(t.id)
   }, t.label)))), /*#__PURE__*/React.createElement(Slider, {
     label: "Profit margin before compensation",
+    unit: "pct",
     value: margin,
     set: setMargin,
     min: 10,
@@ -673,15 +709,57 @@ function Slider({
   min,
   max,
   step,
-  display
+  unit
 }) {
+  const scale = unit === "k" ? 1000 : unit === "m" ? 1000000 : 1;
+  const fmt = raw => {
+    if (unit === "k" || unit === "m") return commas(Math.round(raw));
+    let r = Math.round(raw * 100) / 100;
+    if (Object.is(r, -0)) r = 0;
+    return String(r);
+  };
+  const [txt, setTxt] = useState(() => fmt(value * scale));
+  useEffect(() => {
+    setTxt(fmt(value * scale));
+  }, [value, unit]);
+  const commit = () => {
+    const parsed = parseMessyNumber(txt);
+    if (isNaN(parsed)) {
+      setTxt(fmt(value * scale));
+      return;
+    }
+    const next = clamp(parsed / scale, min, max);
+    set(next);
+    setTxt(fmt(next * scale));
+  };
+  const affixPre = unit === "k" || unit === "m" ? "$" : null;
+  const affixPost = unit === "pct" ? "%" : unit === "x" ? "×" : null;
   return /*#__PURE__*/React.createElement("div", {
     className: "pv-field"
   }, /*#__PURE__*/React.createElement("div", {
     className: "pv-lab"
   }, /*#__PURE__*/React.createElement("span", null, label), /*#__PURE__*/React.createElement("span", {
-    className: "pv-val"
-  }, display)), /*#__PURE__*/React.createElement("input", {
+    className: "pv-box"
+  }, affixPre && /*#__PURE__*/React.createElement("span", {
+    className: "pv-aff"
+  }, affixPre), /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    inputMode: "decimal",
+    className: "pv-input",
+    value: txt,
+    onChange: e => setTxt(e.target.value),
+    onKeyDown: e => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        commit();
+        e.target.blur();
+      }
+    },
+    onBlur: commit,
+    "aria-label": label
+  }), affixPost && /*#__PURE__*/React.createElement("span", {
+    className: "pv-aff"
+  }, affixPost))), /*#__PURE__*/React.createElement("input", {
     type: "range",
     min: min,
     max: max,
