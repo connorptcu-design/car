@@ -32,6 +32,18 @@
           '<button class="btn" type="submit">Enter</button>' +
           '<div class="err" id="gateErr">Wrong password.</div>' +
         '</form>' +
+        '<p class="muted small" style="margin-top:14px">' +
+          '<a href="#" id="gateReqToggle">Don\'t have a password, or need a new one?</a>' +
+        '</p>' +
+        '<form id="gateReqForm" style="display:none;margin-top:10px">' +
+          '<input type="hidden" name="_subject" value="Site access request" />' +
+          '<input type="hidden" name="_template" value="table" />' +
+          '<input type="hidden" name="_captcha" value="false" />' +
+          '<input type="email" id="gateReqEmail" name="email" placeholder="Your email" autocomplete="email" required />' +
+          '<button class="btn" type="submit">Request password</button>' +
+          '<p class="muted small" id="gateReqSent" style="display:none">Thanks — I\'ll email you a code shortly.</p>' +
+          '<div class="err" id="gateReqErr">Something went wrong. Email connorptcu@outlook.com directly.</div>' +
+        '</form>' +
       '</div>';
     document.body.appendChild(overlay);
 
@@ -52,6 +64,41 @@
           pw.focus();
         }
       });
+    });
+
+    var reqToggle = overlay.querySelector('#gateReqToggle');
+    var reqForm = overlay.querySelector('#gateReqForm');
+    var reqSent = overlay.querySelector('#gateReqSent');
+    var reqErr = overlay.querySelector('#gateReqErr');
+
+    reqToggle.addEventListener('click', function (e) {
+      e.preventDefault();
+      reqForm.style.display = reqForm.style.display === 'none' ? 'block' : 'none';
+    });
+
+    reqForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var btn = reqForm.querySelector('button[type="submit"]');
+      reqErr.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+      fetch('https://formsubmit.co/connorptcu@outlook.com', {
+        method: 'POST',
+        headers: { Accept: 'application/json' },
+        body: new FormData(reqForm)
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error('send failed');
+          reqSent.style.display = 'block';
+          reqForm.reset();
+        })
+        .catch(function () {
+          reqErr.style.display = 'block';
+        })
+        .finally(function () {
+          btn.disabled = false;
+          btn.textContent = 'Request password';
+        });
     });
   })();
 

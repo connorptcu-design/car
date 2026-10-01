@@ -38,9 +38,22 @@
         <div class="err" id="err">That code is not recognised. Try again.</div>
       </form>
       <p class="muted small" style="text-align:center;margin-top:18px">
-        Access codes are issued with each engagement. If yours is not working, just reply to my
-        last email.
+        Access codes are issued with each engagement.
+        <a href="#" id="requestToggle">Don't have one, or need a new one?</a>
       </p>
+
+      <form id="requestForm" autocomplete="off" style="display:none;margin-top:18px">
+        <input type="hidden" name="_subject" value="Portal access request" />
+        <input type="hidden" name="_template" value="table" />
+        <input type="hidden" name="_captcha" value="false" />
+        <label for="reqEmail">Your email</label>
+        <input id="reqEmail" name="email" type="email" required autocomplete="email" />
+        <button class="btn" type="submit" style="margin-top:14px;width:100%">Request access code</button>
+        <p class="muted small" id="reqSent" style="display:none;margin-top:12px;text-align:center">
+          Thanks — I'll email you a code shortly.
+        </p>
+        <div class="err" id="reqErr">Something went wrong. Email connorptcu@outlook.com directly.</div>
+      </form>
     </div>
   </section>
 </div>
@@ -140,6 +153,40 @@
     try { sessionStorage.removeItem(KEY); } catch(err){}
     location.reload();
   });
+
+  var reqToggle = document.getElementById('requestToggle');
+  var reqForm = document.getElementById('requestForm');
+  if (reqToggle && reqForm) {
+    reqToggle.addEventListener('click', function(e){
+      e.preventDefault();
+      reqForm.style.display = reqForm.style.display === 'none' ? 'block' : 'none';
+    });
+
+    reqForm.addEventListener('submit', function(e){
+      e.preventDefault();
+      var btn = reqForm.querySelector('button[type="submit"]');
+      var sentEl = document.getElementById('reqSent');
+      var errEl = document.getElementById('reqErr');
+      if (errEl) errEl.style.display = 'none';
+      if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+      fetch('https://formsubmit.co/connorptcu@outlook.com', {
+        method: 'POST',
+        headers: { Accept: 'application/json' },
+        body: new FormData(reqForm)
+      })
+        .then(function(res){
+          if (!res.ok) throw new Error('send failed');
+          if (sentEl) sentEl.style.display = 'block';
+          reqForm.reset();
+        })
+        .catch(function(){
+          if (errEl) errEl.style.display = 'block';
+        })
+        .finally(function(){
+          if (btn) { btn.disabled = false; btn.textContent = 'Request access code'; }
+        });
+    });
+  }
 })();
 </script>
 </body>
