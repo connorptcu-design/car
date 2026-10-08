@@ -4,19 +4,23 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="robots" content="noindex, nofollow" />
+<link rel="icon" href="../assets/favicon.png" />
 <title>Buy-In Evaluation</title>
 <style>
-  html,body{margin:0;padding:0;background:#E6E9EC;min-height:100%}
+  html,body{margin:0;padding:0;background:#FFFFFF;min-height:100%}
   #root{min-height:100vh}
-  .boot{font-family:ui-sans-serif,system-ui,sans-serif;padding:40px 22px;color:#5F6E71}
+  .boot{font-family:ui-sans-serif,system-ui,sans-serif;padding:40px 22px;color:#5B6A7A}
 </style>
 </head>
 <body>
-<div style="position:sticky;top:0;z-index:50;background:#16292E;color:#EAEFEA;
-  font:14px ui-sans-serif,system-ui,sans-serif;padding:9px 18px;display:flex;
+<div style="position:sticky;top:0;z-index:50;background:#0E263C;color:#EAF0F5;
+  font:14px ui-sans-serif,system-ui,sans-serif;padding:10px 20px;display:flex;
   justify-content:space-between;align-items:center;gap:14px">
-  <a href="../portal.html" style="color:#EAEFEA;text-decoration:none">&larr;&nbsp; Portal</a>
-  <span style="opacity:.62;font-size:12.5px">Carry Forward &middot; private workspace</span>
+  <a href="../portal.html" style="color:#EAF0F5;text-decoration:none;display:flex;align-items:center;gap:9px">
+    <img src="../assets/cf-mark-light-sm.png" alt="" style="height:22px;width:auto;display:block" />
+    <span>&larr;&nbsp; Portal</span>
+  </a>
+  <span style="opacity:.66;font-size:12.5px;letter-spacing:.05em">Carry Forward &middot; private workspace</span>
 </div>
 <div id="root"><div class="boot">Loading…</div></div>
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -207,8 +211,8 @@ function G2BuyIn() {
     className: "g2"
   }, /*#__PURE__*/React.createElement("style", null, `
         .g2{
-          --ground:#E6E9EC;--panel:#FBFBFA;--ink:#15252E;--muted:#5C6B73;
-          --rule:#C5CCD1;--soft:#DBE1E4;--gain:#2C6A4F;--drag:#8A3B2C;--accent:#3F566B;
+          --ground:#FFFFFF;--panel:#F8F7F4;--ink:#0E263C;--muted:#5B6A7A;
+          --rule:#DDE2E8;--soft:#EBEEF2;--gain:#2C6A4F;--drag:#8A3B2C;--accent:#2E4A6B;
           --serif:'Iowan Old Style','Palatino Linotype',Palatino,'Book Antiqua',Georgia,serif;
           --sans:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;
           background:var(--ground);color:var(--ink);font-family:var(--sans);
