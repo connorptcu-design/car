@@ -2,6 +2,20 @@
   'use strict';
 
   /* ---------- helpers ---------- */
+  // Owner-adjusted EBITDA multiple by the dollar size of earnings. Shared with the
+  // practice-value and readiness models so the three tools cannot drift apart.
+  function ebitdaBase(e) {
+    if (e < 250000) return 4.75;
+    if (e < 400000) return 5.25;
+    if (e < 750000) return 6.00;
+    if (e < 1500000) return 7.00;
+    if (e < 3000000) return 7.75;
+    if (e < 6000000) return 8.50;
+    if (e < 12000000) return 9.50;
+    return 10.50;
+  }
+  function qualityFactor(points) { return clamp(1 + points * 0.11, 0.76, 1.24); }
+
   function money(v) {
     if (Math.abs(v) >= 1e6) return '$' + (v / 1e6).toFixed(Math.abs(v) >= 1e7 ? 1 : 2) + 'M';
     if (Math.abs(v) >= 1e3) return '$' + Math.round(v / 1e3) + 'k';
@@ -39,23 +53,39 @@
     return n;
   }
 
+  /* log-scaled slider helpers: a wide range (e.g. $150k to $50M) on a linear
+     track buries the range most practices live in, so position is mapped
+     geometrically and the landed value rounded to two significant figures */
+  function niceStep(v) {
+    if (!isFinite(v) || v <= 0) return v;
+    var mag = Math.pow(10, Math.floor(Math.log(v) / Math.LN10) - 1);
+    var stepSize = mag < 1 ? 1 : mag;
+    return Math.round(v / stepSize) * stepSize;
+  }
+  function logVal(pos, lo, hi) { return niceStep(lo * Math.pow(hi / lo, pos / 1000)); }
+  function logPos(val, lo, hi) {
+    return 1000 * Math.log(clamp(val, lo, hi) / lo) / Math.log(hi / lo);
+  }
+
   /* pairs a slider with a typed-number box: box mirrors slider on drag,
      and commits back to the slider (clamped) on Enter or blur */
   function bindNumberBox(slider, box, opts) {
     if (!slider || !box) return;
     var scale = (opts && opts.scale) || 1;
     var decimals = (opts && opts.decimals) || 0;
+    var toVal = (opts && opts.toVal) || function (p) { return p; };
+    var toPos = (opts && opts.toPos) || function (v) { return v; };
 
     function display(raw) {
       return decimals > 0 ? raw.toFixed(decimals) : commas(raw);
     }
     function sync() {
-      box.value = display((+slider.value) * scale);
+      box.value = display(toVal(+slider.value) * scale);
     }
     function commit() {
       var parsed = parseMessyNumber(box.value);
       if (isNaN(parsed)) { sync(); return; }
-      var sliderVal = clamp(parsed / scale, +slider.min, +slider.max);
+      var sliderVal = clamp(toPos(parsed / scale), +slider.min, +slider.max);
       slider.value = sliderVal;
       sync();
       slider.dispatchEvent(new Event('input'));
@@ -98,33 +128,35 @@
 
   /* ---------- practice estimate ---------- */
   (function () {
-    var ids = ['rev', 'fee', 'age', 'grow', 'team', 'struct'];
+    var REV_LO = 150, REV_HI = 50000; // $ thousands, log-scaled track
+    var ids = ['rev', 'margin', 'fee', 'age', 'grow', 'team', 'struct'];
     var el = {}, ok = true;
     ids.forEach(function (i) { el[i] = $(i); if (!el[i]) ok = false; });
     if (!ok) return;
 
     function calc() {
-      var rev = +el.rev.value * 1000;
+      var rev = logVal(+el.rev.value, REV_LO, REV_HI) * 1000;
+      var margin = +el.margin.value / 100;
       var fee = +el.fee.value, age = +el.age.value, grow = +el.grow.value;
       var team = +el.team.value, struct = +el.struct.value;
 
-      var base;
-      if (rev < 300000) base = 2.0;
-      else if (rev < 750000) base = 2.3;
-      else if (rev < 1500000) base = 2.6;
-      else if (rev < 3000000) base = 2.9;
-      else if (rev < 8000000) base = 3.2;
-      else if (rev < 15000000) base = 3.4;
-      else base = 3.6;
+      // Priced on owner-adjusted profit, the way buyers actually price practices.
+      // The revenue multiple is reported as an output, never used as an input.
+      var ebitda = rev * margin;
+      var base = ebitdaBase(ebitda);
 
       var mixAdj = clamp((fee - 65) * 0.014, -0.55, 0.55);
       var ageAdj = clamp((61 - age) * 0.035, -0.50, 0.50);
       var grwAdj = clamp((grow - 5) * 0.055, -0.45, 0.45);
+      var pts = mixAdj + ageAdj + grwAdj + team;
 
-      var mult = clamp((base + mixAdj + ageAdj + grwAdj + team) * (struct / 0.86), 1.2, 5.0);
-      var val = rev * mult;
-      var prepMult = clamp((base + mixAdj + ageAdj + grwAdj + 0.35) * (1.0 / 0.86), 1.2, 5.6);
-      var prepared = rev * prepMult;
+      var mult = clamp(base * struct * qualityFactor(pts), 3.0, 14.0);
+      var val = ebitda * mult;
+      var revMult = rev > 0 ? val / rev : 0;
+
+      // the same earnings inside a firm that has done the work: ensemble structure, a real G2
+      var prepMult = clamp(base * Math.max(struct, 1.0) * qualityFactor(mixAdj + ageAdj + grwAdj + 0.35), 3.0, 14.0);
+      var prepared = ebitda * prepMult;
       var lonely = team < 0 ? 0.72 : team === 0 ? 0.55 : 0.30;
 
       set('revOut', money(rev));
@@ -132,7 +164,9 @@
       set('ageOut', age);
       set('growOut', grow + '%');
       set('range', money(val * 0.89) + ' to ' + money(val * 1.11));
-      var mo = $('multOut'); if (mo) mo.innerHTML = mult.toFixed(2) + '&times;';
+      var mo = $('multOut'); if (mo) mo.innerHTML = revMult.toFixed(2) + '&times;';
+      var eo = $('ebitdaOut'); if (eo) eo.innerHTML = mult.toFixed(1) + '&times;';
+      set('ebitdaVal', money(ebitda));
       set('keyPerson', money(rev * lonely));
       set('prepared', money(prepared));
       var d = prepared - val;
@@ -166,7 +200,10 @@
       el[i].addEventListener('change', calc);
     });
 
-    bindNumberBox(el.rev, $('revBox'), { scale: 1000, decimals: 0 });
+    bindNumberBox(el.rev, $('revBox'), { scale: 1000, decimals: 0,
+      toVal: function (p) { return logVal(p, REV_LO, REV_HI); },
+      toPos: function (v) { return logPos(v, REV_LO, REV_HI); } });
+    bindNumberBox(el.margin, $('marginBox'), { scale: 1, decimals: 0 });
     bindNumberBox(el.fee, $('feeBox'), { scale: 1, decimals: 0 });
     bindNumberBox(el.age, $('ageBox'), { scale: 1, decimals: 0 });
     bindNumberBox(el.grow, $('growBox'), { scale: 1, decimals: 0 });

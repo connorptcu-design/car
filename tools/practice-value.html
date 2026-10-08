@@ -29,6 +29,15 @@
 var useState = React.useState, useMemo = React.useMemo, useEffect = React.useEffect;
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const money = n => "$" + Math.round(n).toLocaleString("en-US");
+const aumFmt = m => m >= 1000 ? "$" + (m / 1000).toFixed(m >= 10000 ? 1 : 2) + "B" : "$" + m + "M";
+const niceStep = v => {
+  if (!isFinite(v) || v <= 0) return v;
+  const mag = Math.pow(10, Math.floor(Math.log10(v)) - 1);
+  const stepSize = mag < 1 ? 1 : mag;
+  return Math.round(v / stepSize) * stepSize;
+};
+const logVal = (pos, lo, hi) => niceStep(lo * Math.pow(hi / lo, pos / 1000));
+const logPos = (val, lo, hi) => 1000 * Math.log(clamp(val, lo, hi) / lo) / Math.log(hi / lo);
 const short = n => {
   if (n >= 1000000) return "$" + (n / 1000000).toFixed(n >= 10000000 ? 1 : 2) + "M";
   if (n >= 1000) return "$" + Math.round(n / 1000) + "k";
@@ -86,6 +95,76 @@ const TEAMS = [{
 }];
 const LTCG = 0.238;
 const ORDINARY = 0.37;
+const DISCOUNT = 0.09; // seller's required return on deferred, at-risk proceeds
+// Owner-adjusted EBITDA multiple by the dollar size of earnings. Revenue multiples
+// are an output of this, never an input: value = adjusted profit x multiple.
+const ebitdaBase = e => e < 250000 ? 4.75 : e < 400000 ? 5.25 : e < 750000 ? 6.0 : e < 1500000 ? 7.0 : e < 3000000 ? 7.75 : e < 6000000 ? 8.5 : e < 12000000 ? 9.5 : 10.5;
+function priceFirm(s) {
+  const t12 = s.rev * 1000;
+  const ebitda = t12 * (s.margin / 100);
+  const base = ebitdaBase(ebitda);
+  const lines = [{
+    key: "mix",
+    label: "Revenue that recurs each year",
+    detail: s.feeMix + "% recurring, against a 65% norm",
+    adj: clamp((s.feeMix - 65) * 0.014, -0.55, 0.55)
+  }, {
+    key: "age",
+    label: "Average client age",
+    detail: s.clientAge + " years old, against a 61 norm",
+    adj: clamp((61 - s.clientAge) * 0.035, -0.5, 0.5)
+  }, {
+    key: "conc",
+    label: "Revenue in the top ten households",
+    detail: s.conc + "%, against a 25% norm",
+    adj: clamp((25 - s.conc) * 0.012, -0.4, 0.4)
+  }, {
+    key: "growth",
+    label: "Organic growth over three years",
+    detail: s.growth + "% a year, against a 5% norm",
+    adj: clamp((s.growth - 5) * 0.055, -0.45, 0.45)
+  }, {
+    key: "ret",
+    label: "Client retention",
+    detail: s.retention + "%, against a 95% norm",
+    adj: clamp((s.retention - 95) * 0.05, -0.35, 0.35)
+  }, {
+    key: "team",
+    label: "Who else the clients trust",
+    detail: TEAMS.find(t => t.id === s.team).label,
+    adj: TEAMS.find(t => t.id === s.team).adj
+  }, {
+    key: "chan",
+    label: "Ownership structure",
+    detail: CHANNELS.find(c => c.id === s.channel).label,
+    adj: CHANNELS.find(c => c.id === s.channel).adj
+  }];
+  const total = lines.reduce((a, l) => a + l.adj, 0);
+  const mult = clamp(base * clamp(1 + total * 0.11, 0.76, 1.24), 3.0, 14.0);
+  // distribute the realised spread across the drivers so the ledger adds up exactly
+  const spread = mult - base;
+  lines.forEach(l => l.pts = total !== 0 ? spread * (l.adj / total) : 0);
+  const value = ebitda * mult;
+  return {
+    t12,
+    ebitda,
+    base,
+    lines,
+    total,
+    mult,
+    value,
+    low: value * 0.89,
+    high: value * 1.11,
+    revMult: t12 > 0 ? value / t12 : 0
+  };
+}
+// PV of an amortising note's payment stream, plus the interest inside it
+function notePV(principal, years, rate, disc) {
+  if (principal <= 0 || years <= 0) return { pv: principal, interest: 0, total: principal };
+  const r = rate / 12, n = years * 12, d = disc / 12;
+  const pmt = principal * r / (1 - Math.pow(1 + r, -n));
+  return { pv: pmt * (1 - Math.pow(1 + d, -n)) / d, interest: pmt * n - principal, total: pmt * n };
+}
 function PracticeValue() {
   const [channel, setChannel] = useState("hybrid");
   const [aum, setAum] = useState(210); // $ millions
@@ -98,85 +177,25 @@ function PracticeValue() {
   const [team, setTeam] = useState("solo");
   const [margin, setMargin] = useState(31); // owner-adjusted profit margin %
   const [showSummary, setShowSummary] = useState(false);
-  const model = useMemo(() => {
-    const t12 = rev * 1000;
-    let base;
-    if (t12 < 300000) base = 2.0;else if (t12 < 750000) base = 2.3;else if (t12 < 1500000) base = 2.6;else if (t12 < 3000000) base = 2.9;else if (t12 < 8000000) base = 3.2;else if (t12 < 15000000) base = 3.4;else base = 3.6;
-    const channelAdj = CHANNELS.find(c => c.id === channel).adj;
-    const teamAdj = TEAMS.find(t => t.id === team).adj;
-    const lines = [{
-      key: "mix",
-      label: "Revenue that recurs each year",
-      detail: feeMix + "% recurring, against a 65% norm",
-      adj: clamp((feeMix - 65) * 0.014, -0.55, 0.55)
-    }, {
-      key: "age",
-      label: "Average client age",
-      detail: clientAge + " years old, against a 61 norm",
-      adj: clamp((61 - clientAge) * 0.035, -0.5, 0.5)
-    }, {
-      key: "conc",
-      label: "Revenue in the top ten households",
-      detail: conc + "%, against a 25% norm",
-      adj: clamp((25 - conc) * 0.012, -0.4, 0.4)
-    }, {
-      key: "growth",
-      label: "Organic growth over three years",
-      detail: growth + "% a year, against a 5% norm",
-      adj: clamp((growth - 5) * 0.055, -0.45, 0.45)
-    }, {
-      key: "ret",
-      label: "Client retention",
-      detail: retention + "%, against a 95% norm",
-      adj: clamp((retention - 95) * 0.05, -0.35, 0.35)
-    }, {
-      key: "team",
-      label: "Who else the clients trust",
-      detail: TEAMS.find(t => t.id === team).label,
-      adj: teamAdj
-    }, {
-      key: "chan",
-      label: "Ownership structure",
-      detail: CHANNELS.find(c => c.id === channel).label,
-      adj: channelAdj
-    }];
-    const total = lines.reduce((s, l) => s + l.adj, 0);
-    const mult = clamp(base + total, 1.2, 5.0);
-    const value = t12 * mult;
-    const low = value * 0.89;
-    const high = value * 1.11;
-    const ebitda = t12 * (margin / 100);
-    const ebitdaMult = ebitda > 0 ? value / ebitda : 0;
-    return {
-      t12,
-      base,
-      lines,
-      total,
-      mult,
-      value,
-      low,
-      high,
-      ebitda,
-      ebitdaMult
-    };
-  }, [rev, feeMix, clientAge, conc, growth, retention, team, channel, margin]);
+  const model = useMemo(() => priceFirm({ rev, margin, feeMix, clientAge, conc, growth, retention, team, channel }),
+    [rev, margin, feeMix, clientAge, conc, growth, retention, team, channel]);
   const paths = useMemo(() => {
     const V = model.value;
-    const note = (principal, years, rate) => {
-      const r = rate / 12;
-      const n = years * 12;
-      const pmt = principal * r / (1 - Math.pow(1 + r, -n));
-      return pmt * n;
-    };
     const build = p => {
       const headline = V * p.factor;
+      const capBlend = p.goodwill * LTCG + (1 - p.goodwill) * ORDINARY;
       const cash = headline * p.cashPct;
       const carried = headline * (p.notePct || 0);
-      const carriedTotal = carried > 0 ? note(carried, p.noteYears, p.noteRate) : 0;
-      const equity = headline * (p.equityPct || 0);
-      const earn = headline * (p.earnPct || 0) * (p.earnHit || 0);
-      const gross = cash + carriedTotal + equity + earn;
-      const afterTax = gross * p.goodwill * (1 - LTCG) + gross * (1 - p.goodwill) * (1 - ORDINARY);
+      const nt = notePV(carried, p.noteYears || 0, p.noteRate || 0, DISCOUNT);
+      const df = Math.pow(1 + DISCOUNT, -(p.years || 0));
+      const equityPV = headline * (p.equityPct || 0) * df;
+      const earnPV = headline * (p.earnPct || 0) * (p.earnHit || 0) * df;
+      // every deferred dollar is discounted to today, and note interest is ordinary income
+      const noteAfterTax = nt.total > 0
+        ? nt.pv * ((carried * (1 - capBlend) + nt.interest * (1 - ORDINARY)) / nt.total)
+        : 0;
+      const gross = cash + nt.pv + equityPV + earnPV;
+      const afterTax = cash * (1 - capBlend) + noteAfterTax + equityPV * (1 - LTCG) + earnPV * (1 - capBlend);
       return {
         ...p,
         headline,
@@ -226,23 +245,7 @@ function PracticeValue() {
     })];
   }, [model]);
   const levers = useMemo(() => {
-    const recompute = over => {
-      const s = {
-        feeMix,
-        clientAge,
-        conc,
-        growth,
-        retention,
-        team,
-        channel,
-        ...over
-      };
-      const t12 = rev * 1000;
-      let base;
-      if (t12 < 300000) base = 2.0;else if (t12 < 750000) base = 2.3;else if (t12 < 1500000) base = 2.6;else if (t12 < 3000000) base = 2.9;else if (t12 < 8000000) base = 3.2;else if (t12 < 15000000) base = 3.4;else base = 3.6;
-      const adj = clamp((s.feeMix - 65) * 0.014, -0.55, 0.55) + clamp((61 - s.clientAge) * 0.035, -0.5, 0.5) + clamp((25 - s.conc) * 0.012, -0.4, 0.4) + clamp((s.growth - 5) * 0.055, -0.45, 0.45) + clamp((s.retention - 95) * 0.05, -0.35, 0.35) + TEAMS.find(t => t.id === s.team).adj + CHANNELS.find(c => c.id === s.channel).adj;
-      return t12 * clamp(base + adj, 1.2, 5.0);
-    };
+    const recompute = over => priceFirm({ rev, margin, feeMix, clientAge, conc, growth, retention, team, channel, ...over }).value;
     const out = [];
     if (feeMix < 95) out.push({
       label: "Move another 20% of revenue onto a recurring fee",
@@ -275,13 +278,13 @@ function PracticeValue() {
       }) - model.value
     });
     return out.sort((a, b) => b.delta - a.delta).slice(0, 4);
-  }, [feeMix, clientAge, conc, growth, retention, team, channel, rev, model.value]);
+  }, [feeMix, clientAge, conc, growth, retention, team, channel, rev, margin, model.value]);
   const wire = channel === "wire";
   const programAward = model.t12 * 1.75;
   const programAfterTax = programAward * (1 - ORDINARY);
   const bestIndependent = Math.max(...paths.map(p => p.afterTax));
   const drags = model.lines.filter(l => l.adj < -0.05).sort((a, b) => a.adj - b.adj).slice(0, 3);
-  const summary = ["Practice snapshot", "Trailing twelve months of revenue: " + short(model.t12) + " on " + aum + "M of assets", "Estimated enterprise value: " + short(model.low) + " to " + short(model.high), "Implied multiple: " + model.mult.toFixed(2) + "x revenue, " + model.ebitdaMult.toFixed(1) + "x owner-adjusted profit", "", "What is holding the number down", ...(drags.length ? drags.map(d => "  " + d.label + " (" + d.detail + ") costs about " + short(Math.abs(d.adj) * model.t12)) : ["  Nothing material. This book prices at or above its size cohort."]), "", "Highest-value moves", ...levers.map(l => "  " + l.label + ": " + short(l.delta)), "", "Paths out, after tax", ...paths.map(p => "  " + p.name + ": " + short(p.cash) + " at close, " + short(p.afterTax) + " net over " + p.years + " years"), "", "Estimate only. Not an appraisal, and not tax or legal advice."].join("\n");
+  const summary = ["Practice snapshot", "Trailing twelve months of revenue: " + short(model.t12) + " on " + aumFmt(aum) + " of assets", "Estimated enterprise value: " + short(model.low) + " to " + short(model.high), "Implied multiple: " + model.mult.toFixed(1) + "x owner-adjusted profit, " + model.revMult.toFixed(2) + "x revenue", "", "What is holding the number down", ...(drags.length ? drags.map(d => "  " + d.label + " (" + d.detail + ") costs about " + short(Math.abs(d.pts) * model.ebitda)) : ["  Nothing material. This book prices at or above its size cohort."]), "", "Highest-value moves", ...levers.map(l => "  " + l.label + ": " + short(l.delta)), "", "Paths out, after tax", ...paths.map(p => "  " + p.name + ": " + short(p.cash) + " at close, " + short(p.afterTax) + " net in today's dollars, over " + p.years + " years"), "", "Estimate only. Not an appraisal, and not tax or legal advice."].join("\n");
   return /*#__PURE__*/React.createElement("div", {
     className: "pv-root"
   }, /*#__PURE__*/React.createElement("style", null, `
@@ -428,19 +431,21 @@ function PracticeValue() {
   }, c.label)))), /*#__PURE__*/React.createElement(Slider, {
     label: "Assets under management",
     unit: "m",
+    log: true,
     value: aum,
     set: setAum,
     min: 10,
-    max: 1200,
+    max: 10000,
     step: 5,
-    display: "$" + aum + "M"
+    display: aumFmt(aum)
   }), /*#__PURE__*/React.createElement(Slider, {
     label: "Revenue, last twelve months",
     unit: "k",
+    log: true,
     value: rev,
     set: setRev,
     min: 100,
-    max: 30000,
+    max: 50000,
     step: 10,
     display: short(rev * 1000)
   }), /*#__PURE__*/React.createElement(Slider, {
@@ -500,7 +505,7 @@ function PracticeValue() {
     "data-on": team === t.id,
     onClick: () => setTeam(t.id)
   }, t.label)))), /*#__PURE__*/React.createElement(Slider, {
-    label: "Profit margin before compensation",
+    label: "Owner-adjusted profit margin",
     unit: "pct",
     value: margin,
     set: setMargin,
@@ -520,13 +525,13 @@ function PracticeValue() {
     className: "pv-sub"
   }, "Enterprise value, independent basis")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     className: "pv-stat"
-  }, model.mult.toFixed(2), "×"), /*#__PURE__*/React.createElement("div", {
+  }, model.revMult.toFixed(2), "×"), /*#__PURE__*/React.createElement("div", {
     className: "pv-sub"
   }, "revenue")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     className: "pv-stat"
-  }, model.ebitdaMult.toFixed(1), "×"), /*#__PURE__*/React.createElement("div", {
+  }, model.mult.toFixed(1), "×"), /*#__PURE__*/React.createElement("div", {
     className: "pv-sub"
-  }, "profit before compensation"))), wire && /*#__PURE__*/React.createElement("div", {
+  }, "owner-adjusted profit"))), wire && /*#__PURE__*/React.createElement("div", {
     className: "pv-callout"
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -545,20 +550,20 @@ function PracticeValue() {
     className: "pv-sec"
   }, "Where the number comes from"), /*#__PURE__*/React.createElement("p", {
     className: "pv-note"
-  }, "Every practice starts at a multiple set by its size. Everything after that is something you control."), /*#__PURE__*/React.createElement("table", {
+  }, "Every practice starts at a multiple set by the size of its owner-adjusted profit. Everything after that is something you control."), /*#__PURE__*/React.createElement("table", {
     className: "pv-ledger"
   }, /*#__PURE__*/React.createElement("tbody", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("div", {
     className: "pv-l1"
-  }, "Starting multiple for a book this size"), /*#__PURE__*/React.createElement("div", {
+  }, "Starting multiple for earnings this size"), /*#__PURE__*/React.createElement("div", {
     className: "pv-l2"
-  }, short(model.t12), " of trailing revenue")), /*#__PURE__*/React.createElement("td", {
+  }, short(model.ebitda), " of owner-adjusted profit")), /*#__PURE__*/React.createElement("td", {
     className: "pv-num"
   }, model.base.toFixed(2), "×"), /*#__PURE__*/React.createElement("td", {
     className: "pv-num",
     style: {
       color: "var(--muted)"
     }
-  }, short(model.t12 * model.base))), model.lines.map(l => {
+  }, short(model.ebitda * model.base))), model.lines.map(l => {
     const pos = l.adj >= 0;
     const c = Math.abs(l.adj) < 0.01 ? "var(--muted)" : pos ? "var(--gain)" : "var(--drag)";
     return /*#__PURE__*/React.createElement("tr", {
@@ -580,12 +585,12 @@ function PracticeValue() {
       style: {
         color: c
       }
-    }, pos ? "+" : "\u2212", Math.abs(l.adj).toFixed(2), "×"), /*#__PURE__*/React.createElement("td", {
+    }, pos ? "+" : "\u2212", Math.abs(l.pts).toFixed(2), "×"), /*#__PURE__*/React.createElement("td", {
       className: "pv-num",
       style: {
         color: c
       }
-    }, pos ? "+" : "\u2212", short(Math.abs(l.adj) * model.t12)));
+    }, pos ? "+" : "\u2212", short(Math.abs(l.pts) * model.ebitda)));
   }), /*#__PURE__*/React.createElement("tr", {
     className: "pv-total"
   }, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("b", null, "Where you land")), /*#__PURE__*/React.createElement("td", {
@@ -704,7 +709,8 @@ function Slider({
   min,
   max,
   step,
-  unit
+  unit,
+  log
 }) {
   const scale = unit === "k" ? 1000 : unit === "m" ? 1000000 : 1;
   const fmt = raw => {
@@ -756,11 +762,11 @@ function Slider({
     className: "pv-aff"
   }, affixPost))), /*#__PURE__*/React.createElement("input", {
     type: "range",
-    min: min,
-    max: max,
-    step: step,
-    value: value,
-    onChange: e => set(Number(e.target.value)),
+    min: log ? 0 : min,
+    max: log ? 1000 : max,
+    step: log ? 1 : step,
+    value: log ? logPos(value, min, max) : value,
+    onChange: e => set(log ? logVal(Number(e.target.value), min, max) : Number(e.target.value)),
     "aria-label": label
   }));
 }

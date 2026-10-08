@@ -27,7 +27,16 @@
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script>
 var useState = React.useState, useMemo = React.useMemo, useEffect = React.useEffect;
+const DISCOUNT = 0.09; // seller's required return on deferred, at-risk proceeds
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+const niceStep = v => {
+  if (!isFinite(v) || v <= 0) return v;
+  const mag = Math.pow(10, Math.floor(Math.log10(v)) - 1);
+  const stepSize = mag < 1 ? 1 : mag;
+  return Math.round(v / stepSize) * stepSize;
+};
+const logVal = (pos, lo, hi) => niceStep(lo * Math.pow(hi / lo, pos / 1000));
+const logPos = (val, lo, hi) => 1000 * Math.log(clamp(val, lo, hi) / lo) / Math.log(hi / lo);
 const K = n => {
   const v = n * 1000;
   if (Math.abs(v) >= 1000000) return "$" + (v / 1000000).toFixed(Math.abs(v) >= 10000000 ? 1 : 2) + "M";
@@ -341,7 +350,7 @@ function TransitionProgram() {
     const adj = rev - otherExp - replacement + personalExp + oneTime;
     const margin = rev > 0 ? adj / rev * 100 : 0;
     let base;
-    if (adj < 500) base = 5.0;else if (adj < 1000) base = 6.0;else if (adj < 2500) base = 7.5;else if (adj < 5000) base = 9.0;else base = 10.5;
+    if (adj < 250) base = 4.75;else if (adj < 400) base = 5.25;else if (adj < 750) base = 6.0;else if (adj < 1500) base = 7.0;else if (adj < 3000) base = 7.75;else if (adj < 6000) base = 8.5;else if (adj < 12000) base = 9.5;else base = 10.5;
     const modelFactor = FIRM_MODELS.find(m => m.id === fmodel).factor;
     const qualityFactor = 0.76 + readiness.p / 100 * 0.46;
     const transferFactor = 0.86 + transfer.score / 100 * 0.26;
@@ -392,7 +401,8 @@ function TransitionProgram() {
     let cash,
       rolled = 0,
       carried = 0,
-      carriedTotal = 0;
+      carriedTotal = 0,
+      noteInterest = 0;
     if (b.rollover) {
       rolled = gross * (rollShare / 100);
       cash = gross - rolled;
@@ -402,14 +412,20 @@ function TransitionProgram() {
       if (carried > 0 && b.noteYears > 0) {
         const r = b.noteRate / 12;
         const n = b.noteYears * 12;
-        carriedTotal = carried * r / (1 - Math.pow(1 + r, -n)) * n;
+        const d = DISCOUNT / 12;
+        const pmt = carried * r / (1 - Math.pow(1 + r, -n));
+        carriedTotal = pmt * (1 - Math.pow(1 + d, -n)) / d; // discounted to today
+        noteInterest = pmt * n - carried;
       } else {
         carriedTotal = carried;
       }
     }
     const collected = cash + carriedTotal;
     const effTax = e.ent + (1 - e.ent) * (e.ord * 0.37 + (1 - e.ord) * 0.238);
-    const afterTax = collected * (1 - effTax);
+    const noteFace = carried + noteInterest;
+    const afterTax = cash * (1 - effTax) + (noteFace > 0
+      ? carriedTotal * ((carried * (1 - effTax) + noteInterest * (1 - 0.37)) / noteFace)
+      : carriedTotal * (1 - effTax));
 
     // rollover second bite
     const growth = Math.pow(1 + platGrowth / 100, holdYears);
@@ -417,8 +433,9 @@ function TransitionProgram() {
     const dilution = 0.85;
     const secondBase = rolled * growth * expansion * dilution;
     const secondDown = rolled * Math.pow(1.04, holdYears) * 1.0 * 0.8;
-    const secondBaseNet = secondBase * (1 - 0.238);
-    const secondDownNet = secondDown * (1 - 0.238);
+    const secondDF = Math.pow(1 + DISCOUNT, -holdYears);
+    const secondBaseNet = secondBase * (1 - 0.238) * secondDF;
+    const secondDownNet = secondDown * (1 - 0.238) * secondDF;
     const crossesControl = ownPct > 50 && retained < 50;
     return {
       b,
@@ -702,10 +719,11 @@ function TransitionProgram() {
   }, "Producers and support, counted separately."), /*#__PURE__*/React.createElement(Rng, {
     label: "Revenue",
     unit: "k",
+    log: true,
     v: rev,
     set: setRev,
     min: 500,
-    max: 20000,
+    max: 50000,
     step: 50,
     d: K(rev)
   }), /*#__PURE__*/React.createElement(Rng, {
@@ -714,7 +732,7 @@ function TransitionProgram() {
     v: households,
     set: setHouseholds,
     min: 40,
-    max: 2000,
+    max: clamp(Math.round(rev / 3), 400, 20000),
     step: 10,
     d: households
   }), /*#__PURE__*/React.createElement(Rng, {
@@ -723,7 +741,7 @@ function TransitionProgram() {
     v: leads,
     set: setLeads,
     min: 1,
-    max: 20,
+    max: clamp(Math.ceil(rev / 350), 8, 60),
     step: 1,
     d: leads
   }), /*#__PURE__*/React.createElement(Rng, {
@@ -732,7 +750,7 @@ function TransitionProgram() {
     v: assoc,
     set: setAssoc,
     min: 0,
-    max: 20,
+    max: clamp(Math.ceil(rev / 350), 8, 60),
     step: 1,
     d: assoc
   }), /*#__PURE__*/React.createElement(Rng, {
@@ -741,7 +759,7 @@ function TransitionProgram() {
     v: service,
     set: setService,
     min: 0,
-    max: 25,
+    max: clamp(Math.ceil(rev / 280), 10, 75),
     step: 1,
     d: service
   }), /*#__PURE__*/React.createElement(Rng, {
@@ -750,7 +768,7 @@ function TransitionProgram() {
     v: ops,
     set: setOps,
     min: 0,
-    max: 15,
+    max: clamp(Math.ceil(rev / 470), 6, 45),
     step: 1,
     d: ops
   }), /*#__PURE__*/React.createElement(Rng, {
@@ -893,10 +911,11 @@ function TransitionProgram() {
   }, "A buyer does not price what the owners take home. They price what the business earns once the owners are paid a market wage for the work they do."), /*#__PURE__*/React.createElement(Rng, {
     label: "Revenue",
     unit: "k",
+    log: true,
     v: rev,
     set: setRev,
     min: 500,
-    max: 20000,
+    max: 50000,
     step: 50,
     d: K(rev)
   }), /*#__PURE__*/React.createElement(Rng, {
@@ -905,7 +924,7 @@ function TransitionProgram() {
     v: ownerComp,
     set: setOwnerComp,
     min: 0,
-    max: 8000,
+    max: Math.max(500, Math.round(rev * 0.7)),
     step: 25,
     d: K(ownerComp)
   }), /*#__PURE__*/React.createElement(Rng, {
@@ -923,7 +942,7 @@ function TransitionProgram() {
     v: otherExp,
     set: setOtherExp,
     min: 0,
-    max: 12000,
+    max: Math.max(500, Math.round(rev * 0.9)),
     step: 25,
     d: K(otherExp)
   }), /*#__PURE__*/React.createElement(Rng, {
@@ -932,7 +951,7 @@ function TransitionProgram() {
     v: personalExp,
     set: setPersonalExp,
     min: 0,
-    max: 800,
+    max: Math.max(100, Math.round(rev * 0.1)),
     step: 5,
     d: K(personalExp)
   }), /*#__PURE__*/React.createElement(Rng, {
@@ -941,7 +960,7 @@ function TransitionProgram() {
     v: oneTime,
     set: setOneTime,
     min: 0,
-    max: 800,
+    max: Math.max(100, Math.round(rev * 0.1)),
     step: 5,
     d: K(oneTime)
   })), /*#__PURE__*/React.createElement("div", {
@@ -1477,7 +1496,8 @@ function Rng({
   min,
   max,
   step,
-  unit
+  unit,
+  log
 }) {
   const scale = unit === "k" ? 1000 : unit === "m" ? 1000000 : 1;
   const fmt = raw => {
@@ -1529,11 +1549,11 @@ function Rng({
     className: "tp-aff"
   }, affixPost))), /*#__PURE__*/React.createElement("input", {
     type: "range",
-    min: min,
-    max: max,
-    step: step,
-    value: v,
-    onChange: e => set(Number(e.target.value)),
+    min: log ? 0 : min,
+    max: log ? 1000 : max,
+    step: log ? 1 : step,
+    value: log ? logPos(v, min, max) : v,
+    onChange: e => set(log ? logVal(Number(e.target.value), min, max) : Number(e.target.value)),
     "aria-label": label
   }));
 }
