@@ -81,7 +81,7 @@ const FIRM_MODELS = [{
   id: "silo",
   name: "Silo, or eat what you kill",
   line: "Several advisors sharing an office, a brand and overhead, but each with a separate book and separate economics.",
-  buyer: "This is not one deal, it is several. Buyers price each silo separately and most processes stall because the partners never agreed on what they were selling. Converting to a shared P&L is usually the single highest-value project available.",
+  buyer: "This is not one deal, it is several. Buyers price each silo separately, and a process like this can stall when partners have not agreed on what they are selling. Converting to a shared P&L is often one of the highest-value projects available.",
   factor: 0.86
 }, {
   id: "ensemble",
@@ -93,7 +93,7 @@ const FIRM_MODELS = [{
   id: "enterprise",
   name: "Enterprise ensemble",
   line: "Multiple advisor teams, non-producing leadership, professionalized operations and a real management layer.",
-  buyer: "This is a platform. It attracts strategic and financial buyers rather than tuck-in acquirers, and it is the only model where the founder's departure is genuinely a non-event.",
+  buyer: "This is a platform. It attracts strategic and financial buyers rather than tuck-in acquirers, and it is the model where the founder's departure comes closest to being a non-event.",
   factor: 1.12
 }];
 const BUYERS = [{
@@ -106,7 +106,7 @@ const BUYERS = [{
   cashPct: 0.25,
   noteYears: 7,
   noteRate: 0.065,
-  note: "Redemptions are priced by the agreement, not by the market, and the agreement was usually written when the firm was a fraction of its current size. A partial redemption can also be recharacterised as a dividend rather than a sale unless the departing interest is fully terminated, which changes the tax rate rather than the price."
+  note: "Redemptions are priced by the agreement, not by the market, and the agreement is often written when the firm was a fraction of its current size. A partial redemption can also be recharacterised as a dividend rather than a sale unless the departing interest is fully terminated, which changes the tax rate rather than the price."
 }, {
   id: "cross",
   name: "The remaining partners buy them personally",
@@ -162,7 +162,7 @@ const BUYERS = [{
   cashPct: 0.40,
   noteYears: 6,
   noteRate: 0.08,
-  note: "Rare, and priced for it. There is no established market for a minority interest in a private advisory firm, which is why the marketability discount here is the widest of any path and why most of these processes end without a buyer."
+  note: "This path is uncommon, and priced accordingly. There is no established market for a minority interest in a private advisory firm, which is why the marketability discount here is the widest of any path and why many of these processes end without a buyer."
 }];
 const ENTITIES = [{
   id: "s-stock",
@@ -181,7 +181,7 @@ const ENTITIES = [{
   name: "LLC or partnership interest",
   ord: 0.18,
   ent: 0,
-  note: "Mostly capital gain, but unrealised receivables count as hot assets and convert to ordinary income. For a cash-basis advisory firm carrying real receivables, that share is larger than most sellers expect."
+  note: "Mostly capital gain, but unrealised receivables count as hot assets and convert to ordinary income. For a cash-basis advisory firm carrying real receivables, that share is often larger than sellers expect."
 }, {
   id: "c-asset",
   name: "C corporation, asset sale",
@@ -212,7 +212,7 @@ const READINESS = [{
 }, {
   id: "ops",
   label: "Operating infrastructure",
-  hint: "CRM hygiene, documented workflows, a service model that is actually delivered"
+  hint: "CRM hygiene, documented workflows, a service model that is delivered"
 }, {
   id: "books",
   label: "Financial reporting",
@@ -229,11 +229,11 @@ const READINESS = [{
 const DISCOVERY = [{
   phase: "The founder, alone",
   when: "Before any numbers exist",
-  qs: [["Walk me through what the day after closing looks like.", "Whether they have ever pictured not working. A founder who cannot describe that day is the one who renegotiates at the letter of intent."], ["Who have you already told that you are thinking about this?", "If the answer is nobody, the team is not aligned and the real timeline is two years longer than they believe."], ["What number in your head makes this worth doing?", "Whether it is a valuation or a lifestyle number. They are rarely the same, and the lifestyle number is usually smaller than the market price."], ["If every path paid the same, which would you choose?", "The actual objective. This separates legacy motives from liquidity motives faster than any other question."], ["What happens to who you are when the business card changes?", "The thing that causes eleventh-hour reversals. It is worth naming out loud early."]]
+  qs: [["Walk me through what the day after closing looks like.", "Whether they have ever pictured not working. A founder who cannot describe that day is the one who renegotiates at the letter of intent."], ["Who have you already told that you are thinking about this?", "If the answer is nobody, the team is not aligned and the real timeline is likely longer than they believe."], ["What number in your head makes this worth doing?", "Whether it is a valuation or a lifestyle number. They are rarely the same, and the lifestyle number is often smaller than the market price."], ["If every path paid the same, which would you choose?", "The actual objective. This often separates legacy motives from liquidity motives more quickly than other questions."], ["What happens to who you are when the business card changes?", "This can be a source of late reversals. It is worth naming out loud early."]]
 }, {
   phase: "The next generation, without the founder in the room",
   when: "Non-negotiable, and rarely done",
-  qs: [["If the firm sold to an outside buyer tomorrow, what would you do?", "Whether the bench is a retention asset or a flight risk. A buyer asks this in diligence. You should hear the answer first."], ["What have you been promised, and is any of it in writing?", "Verbal equity promises. These kill more internal deals than valuation disputes do."], ["How many of the top twenty-five households would take your call if the founder were unreachable?", "The gap between this answer and the founder's. It is almost always wide, and it is the real transferability number."], ["What would you need in order to afford to buy in?", "Whether they have run the math. Usually they have not, and the number shocks them."], ["What would you change about how the firm runs if it were yours?", "Whether you are talking to an operator or a producer. Only one of them can carry an internal succession."]]
+  qs: [["If the firm sold to an outside buyer tomorrow, what would you do?", "Whether the bench is a retention asset or a flight risk. A buyer asks this in diligence. You should hear the answer first."], ["What have you been promised, and is any of it in writing?", "Verbal equity promises. Unwritten promises are a common source of internal deals breaking down."], ["How many of the top twenty-five households would take your call if the founder were unreachable?", "The gap between this answer and the founder's. It is often wide, and it is the real transferability number."], ["What would you need in order to afford to buy in?", "Whether they have run the math. Often they have not, and the number surprises them."], ["What would you change about how the firm runs if it were yours?", "Whether you are talking to an operator or a producer. Typically, only one of the two can carry an internal succession."]]
 }, {
   phase: "The clients, as an audit rather than interviews",
   when: "Evidence, not opinion",
@@ -245,7 +245,7 @@ const DISCOVERY = [{
 }, {
   phase: "The paths",
   when: "Only once the first four are answered",
-  qs: [["Rank these against each other with no ties: price, speed, control, team continuity, client continuity, legacy.", "Forcing a strict ranking is the point. Everyone claims all six matter equally until they have to order them."], ["Who is the buyer you would be embarrassed to have sold to?", "Constraints they have not articulated. This narrows the field faster than any screen."], ["If the earnout paid nothing, would you still do this deal?", "Whether the structure works on cash at close alone, which is the only part that is certain."], ["What is the plan if you are unable to work before any of this happens?", "Continuity. Ask it last, because it reframes the whole conversation from optional to overdue."]]
+  qs: [["Rank these against each other with no ties: price, speed, control, team continuity, client continuity, legacy.", "Forcing a strict ranking is the point. People often say all six matter equally until they have to rank them."], ["Who is the buyer you would be embarrassed to have sold to?", "Constraints they have not articulated. This can narrow the field quickly."], ["If the earnout paid nothing, would you still do this deal?", "Whether the structure works on cash at close alone, which is the only part that is certain."], ["What is the plan if you are unable to work before any of this happens?", "Continuity. Ask it last, because it tends to change how urgent the rest feels."]]
 }];
 
 /* ---------------------------------------------------------------- app */
@@ -546,7 +546,7 @@ function TransitionProgram() {
   let capVerdictHead, capVerdictBody;
   if (growthCap.utilization > 1) {
     capVerdictHead = "Over capacity.";
-    capVerdictBody = "The firm is already serving more households than its advisors can cover well. Organic growth stalls here not for lack of demand, but because nobody has time to take the meeting, and a buyer will price in the service risk.";
+    capVerdictBody = "The firm is already serving more households than its advisors can cover well. Organic growth stalls here not for lack of demand, but because there is little time to take the meeting, and a buyer will price in the service risk.";
   } else if (growthCap.utilization >= 0.85) {
     capVerdictHead = "Near capacity.";
     capVerdictBody = `There is room for about ${Math.max(0, Math.round(growthCap.openCapacity))} more households, roughly ${growthCap.runway.toFixed(1)} years at your growth target, before growth requires another advisor.`;
@@ -679,7 +679,7 @@ function TransitionProgram() {
     className: "tp-w"
   }, /*#__PURE__*/React.createElement("h1", null, "Getting a team ready to sell, hand off, or hand down"), /*#__PURE__*/React.createElement("p", {
     className: "tp-lede"
-  }, "Five diagnostics run in sequence. Structure first, because it determines what is being sold. Then who owns the clients, then what a buyer will actually pay a multiple on, then the gaps, then the conversation itself."), /*#__PURE__*/React.createElement("div", {
+  }, "Seven diagnostics run in sequence. Structure first, because it determines what is being sold. Then who owns the clients, then what a buyer will pay a multiple on, then what a single partner's stake is worth, then the gaps diligence will test, then the discovery conversations, then the case itself."), /*#__PURE__*/React.createElement("div", {
     className: "tp-bar"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, K(econ.adj)), /*#__PURE__*/React.createElement("span", null, "Adjusted profit")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, econ.mult.toFixed(1), "×"), /*#__PURE__*/React.createElement("span", null, "Blended multiple")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, K(econ.ev)), /*#__PURE__*/React.createElement("span", null, "Enterprise value")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, pct(transfer.score)), /*#__PURE__*/React.createElement("span", null, "Transferable")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, pct(readiness.p)), /*#__PURE__*/React.createElement("span", null, "Diligence-ready"))), /*#__PURE__*/React.createElement("div", {
     className: "tp-tabs"
@@ -813,7 +813,7 @@ function TransitionProgram() {
     v: K(capacity.revPerPro),
     band: "$500k to $1.2M",
     bad: capacity.revPerPro < 350 || capacity.revPerPro > 1600,
-    say: capacity.revPerPro > 1600 ? "Extremely lean. Usually means one person carries everything, which is a key-person finding, not a compliment." : capacity.revPerPro < 350 ? "Heavy for the revenue. Expect a buyer to model headcount reductions into their margin case." : "In range."
+    say: capacity.revPerPro > 1600 ? "Extremely lean. Often means one person carries everything, which is a key-person finding, not a compliment." : capacity.revPerPro < 350 ? "Heavy for the revenue. Expect a buyer to model headcount reductions into their margin case." : "In range."
   }), /*#__PURE__*/React.createElement(Bench, {
     label: "Support staff per producer",
     v: capacity.staffRatio.toFixed(2),
@@ -832,7 +832,7 @@ function TransitionProgram() {
     className: "tp-2"
   }, /*#__PURE__*/React.createElement("div", {
     className: "tp-p"
-  }, /*#__PURE__*/React.createElement("h2", null, "Who actually owns the clients"), /*#__PURE__*/React.createElement("p", {
+  }, /*#__PURE__*/React.createElement("h2", null, "Who owns the clients"), /*#__PURE__*/React.createElement("p", {
     className: "tp-note"
   }, "Run these from the CRM against the top households, not from the founder's recollection. The two answers are almost never the same, and the gap between them is the finding."), /*#__PURE__*/React.createElement(Rng, {
     label: "Revenue where the founder is the sole relationship",
@@ -900,7 +900,7 @@ function TransitionProgram() {
     className: "tp-row"
   }, /*#__PURE__*/React.createElement("span", null, "Realistic time to move relationships"), /*#__PURE__*/React.createElement("b", null, transfer.years)), /*#__PURE__*/React.createElement("div", {
     className: "tp-call"
-  }, /*#__PURE__*/React.createElement("b", null, "The mechanic nobody sequences correctly"), "Relationships do not move because an org chart says so. They move after roughly three consecutive joint meetings in which the second advisor leads the agenda and the founder deliberately says less. At two meetings a year that is an eighteen-month project per household, run in waves. Starting it after a letter of intent is signed is starting it two years late, which is why so much of the price ends up in an earnout."), /*#__PURE__*/React.createElement("p", {
+  }, /*#__PURE__*/React.createElement("b", null, "The mechanic that is easy to sequence wrong"), "Relationships do not move because an org chart says so. They typically begin to shift after about three consecutive joint meetings in which the second advisor leads the agenda and the founder says less. At two meetings a year, that can mean an eighteen-month project per household, run in waves. Starting it after a letter of intent is signed leaves little time to finish it, which is why so much of the price ends up in an earnout."), /*#__PURE__*/React.createElement("p", {
     className: "tp-src"
   }, "Cerulli's 2026 research puts 35.3% of advisors, holding 40.1% of industry assets and roughly $14.5 trillion, within ten years of retirement, and finds more than a quarter of them still unsure of their succession plans. An earlier Cerulli study found only 27% of advisors retiring within the decade planned to hand their book to someone already inside their practice."))), tab === "econ" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     className: "tp-2"
@@ -1001,7 +1001,7 @@ function TransitionProgram() {
     className: "tp-row tp-tot"
   }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("b", null, "Where the firm prices")), /*#__PURE__*/React.createElement("b", null, econ.mult.toFixed(1), "× \xA0·\xA0 ", K(econ.ev)))), /*#__PURE__*/React.createElement("div", {
     className: "tp-p"
-  }, /*#__PURE__*/React.createElement("h2", null, "Can the next generation actually pay for it"), /*#__PURE__*/React.createElement("p", {
+  }, /*#__PURE__*/React.createElement("h2", null, "Can the next generation pay for it"), /*#__PURE__*/React.createElement("p", {
     className: "tp-note"
   }, "Internal succession fails on arithmetic far more often than on willingness. Test it before anyone promises anything."), /*#__PURE__*/React.createElement("div", {
     className: "tp-2"
@@ -1165,11 +1165,11 @@ function TransitionProgram() {
     className: "tp-call"
   }, /*#__PURE__*/React.createElement("b", null, "Why the arithmetic does not hold"), noDiscounts ? "The agreement removes the discounts, which sounds like a win and often is not. A formula written years ago tends to lag what the firm has become, and it binds whichever partner leaves first. Whether that helps or hurts depends entirely on who is at the door." : "A minority holder cannot set distributions, hire, sell the firm, or force any of those things to happen, and there is no market to sell the interest into. Appraisers price both of those, and buyers of small blocks price them hard. The single fastest way to close the gap is a funded agreement with a defined liquidity mechanism."), stakeDeal.crossesControl && /*#__PURE__*/React.createElement("div", {
     className: "tp-call"
-  }, /*#__PURE__*/React.createElement("b", null, "This sale crosses control"), "You go from ", pct(ownPct), " to ", stakeDeal.retained.toFixed(1), "%. The points either side of fifty are worth far more than the points above or below them, because they carry the ability to decide. Selling through that line and keeping a minority is usually the worst of both outcomes: you no longer control the firm, and what you still hold is now discounted for exactly that reason."))), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("b", null, "This sale crosses control"), "You go from ", pct(ownPct), " to ", stakeDeal.retained.toFixed(1), "%. The points either side of fifty are worth far more than the points above or below them, because they carry the ability to decide. Selling through that line and keeping a minority is often the worst of both outcomes: you no longer control the firm, and what you still hold is now discounted for exactly that reason."))), /*#__PURE__*/React.createElement("div", {
     className: "tp-2"
   }, /*#__PURE__*/React.createElement("div", {
     className: "tp-p"
-  }, /*#__PURE__*/React.createElement("h2", null, "What you actually receive"), stakeDeal.b.rollover ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Rng, {
+  }, /*#__PURE__*/React.createElement("h2", null, "What you receive"), stakeDeal.b.rollover ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Rng, {
     label: "Share of the price rolled into the platform",
     unit: "pct",
     v: rollShare,
@@ -1202,7 +1202,7 @@ function TransitionProgram() {
     className: "tp-p"
   }, stakeDeal.b.rollover ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("h2", null, "The second bite"), /*#__PURE__*/React.createElement("p", {
     className: "tp-note"
-  }, "The rolled equity is the entire argument for this path. It is also the part nobody can promise, so it is worth modelling both directions before signing."), /*#__PURE__*/React.createElement(Rng, {
+  }, "The rolled equity is the entire argument for this path. It is also the part that cannot be guaranteed, so it is worth modelling both directions before signing."), /*#__PURE__*/React.createElement(Rng, {
     label: "Years until the platform sells again",
     unit: "num",
     v: holdYears,
@@ -1261,7 +1261,7 @@ function TransitionProgram() {
     className: "tp-p"
   }, /*#__PURE__*/React.createElement("h2", null, "Read the agreement before anything else"), /*#__PURE__*/React.createElement("p", {
     className: "tp-note"
-  }, "Most partners have not read their own buy-sell since they signed it, and it has already decided most of what is on this page. Work through these in order."), [["How is the price set: a fixed number, a formula, or an appraisal?", "Fixed prices go stale within a year or two and are almost always wrong by the time anyone uses them. Formulas embed a multiple chosen when the firm was smaller. Appraisal is the fairest and the slowest."], ["Does the agreement apply valuation discounts, and does it say so explicitly?", "Silence here is the most expensive word in the document. It gets resolved by whoever has more leverage at the moment of departure, which is never the person leaving."], ["Is the obligation funded, and funded for which triggers?", "Many agreements are insured for death and nothing else. Disability, retirement and voluntary departure are the triggers that actually happen, and they are usually funded out of cash flow the firm does not have."], ["Is it a redemption, a cross-purchase, or a hybrid the partners get to choose at the time?", "This changes who gets basis, who pays tax at what rate, and whether life insurance sits inside the company or with the individuals. Hybrids are common and are usually the right answer."], ["What are the trigger events, and is there a lower price for some of them?", "Voluntary departure before a stated age often prices at a haircut. Confirm which side of that line the client is on before any timeline gets discussed out loud."], ["What happens on divorce, disability, or personal bankruptcy?", "These clauses are skimmed at signing and are the ones that produce litigation. They also determine whether a spouse can end up holding shares in the firm."], ["Is there a non-compete or non-solicit tied to the payments?", "If the note stops when the seller competes, the price and the restriction are the same instrument. That is enforceable in most places and is worth knowing before, not after."], ["Who has the right to approve a new owner?", "If the remaining partners can veto a buyer, the outside market for a stake is theoretical. That single clause is often why the marketability discount is as wide as it is."]].map(([q, why], i) => /*#__PURE__*/React.createElement("div", {
+  }, "Many partners have not reread their own buy-sell since signing it, and it has already decided much of what is on this page. Work through these in order."), [["How is the price set: a fixed number, a formula, or an appraisal?", "Fixed prices go stale within a year or two and are often wrong by the time anyone uses them. Formulas embed a multiple chosen when the firm was smaller. Appraisal is the fairest and the slowest."], ["Does the agreement apply valuation discounts, and does it say so explicitly?", "Silence here is the most expensive word in the document. It gets resolved by whoever has more leverage at the moment of departure, which is rarely the person leaving."], ["Is the obligation funded, and funded for which triggers?", "Many agreements are insured for death and nothing else. Disability, retirement and voluntary departure are the triggers that happen most often, and they are often funded out of cash flow the firm does not have."], ["Is it a redemption, a cross-purchase, or a hybrid the partners get to choose at the time?", "This changes who gets basis, who pays tax at what rate, and whether life insurance sits inside the company or with the individuals. Hybrids are common and are often the right answer."], ["What are the trigger events, and is there a lower price for some of them?", "Voluntary departure before a stated age often prices at a haircut. Confirm which side of that line the client is on before any timeline gets discussed out loud."], ["What happens on divorce, disability, or personal bankruptcy?", "These clauses are skimmed at signing and are the ones that produce litigation. They also determine whether a spouse can end up holding shares in the firm."], ["Is there a non-compete or non-solicit tied to the payments?", "If the note stops when the seller competes, the price and the restriction are the same instrument. That is enforceable in most places and is worth knowing before, not after."], ["Who has the right to approve a new owner?", "If the remaining partners can veto a buyer, the outside market for a stake is theoretical. That single clause is often why the marketability discount is as wide as it is."]].map(([q, why], i) => /*#__PURE__*/React.createElement("div", {
     className: "tp-q",
     key: i
   }, /*#__PURE__*/React.createElement("p", null, q), /*#__PURE__*/React.createElement("em", null, "Why it matters: ", why))))), tab === "ready" && /*#__PURE__*/React.createElement("div", {
@@ -1321,7 +1321,7 @@ function TransitionProgram() {
     className: "tp-p"
   }, /*#__PURE__*/React.createElement("h2", null, "The discovery sequence"), /*#__PURE__*/React.createElement("p", {
     className: "tp-note"
-  }, "Run in this order. Each phase depends on hearing the previous one honestly, and the second phase is the one most consultants skip.")), DISCOVERY.map(d => /*#__PURE__*/React.createElement("div", {
+  }, "Run in this order. Each phase depends on hearing the previous one honestly, and the second phase is the one that tends to get skipped.")), DISCOVERY.map(d => /*#__PURE__*/React.createElement("div", {
     className: "tp-p",
     key: d.phase
   }, /*#__PURE__*/React.createElement("div", {
@@ -1374,7 +1374,7 @@ function TransitionProgram() {
     className: "tp-p"
   }, /*#__PURE__*/React.createElement("h2", null, "What waiting costs"), /*#__PURE__*/React.createElement("p", {
     className: "tp-note"
-  }, "Succession has no deadline, which is why it never happens. This is the only argument that creates one."), /*#__PURE__*/React.createElement("div", {
+  }, "Succession has no deadline, which is part of why it gets delayed. This is one argument that creates one anyway."), /*#__PURE__*/React.createElement("div", {
     className: "tp-row"
   }, /*#__PURE__*/React.createElement("span", null, "Annual erosion at current age and transferability"), /*#__PURE__*/React.createElement("b", null, pct(caseView.decay * 100))), /*#__PURE__*/React.createElement("div", {
     className: "tp-row"
@@ -1392,7 +1392,7 @@ function TransitionProgram() {
     className: "tp-row tp-tot"
   }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("b", null, "Swing between acting now and waiting three years")), /*#__PURE__*/React.createElement("b", null, K(caseView.delta + caseView.wait36))), /*#__PURE__*/React.createElement("div", {
     className: "tp-call"
-  }, /*#__PURE__*/React.createElement("b", null, "Where the erosion actually comes from"), "Clients age into decumulation, the founder's remaining working years fall below the time it takes to move relationships, and growth flattens as the founder stops prospecting. None of it feels like anything while it is happening. It shows up all at once, in a letter of intent, as a longer earnout and less cash at close."))), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("b", null, "Where the erosion comes from"), "Clients age into decumulation, the founder's remaining working years fall below the time it takes to move relationships, and growth flattens as the founder stops prospecting. None of it feels like anything while it is happening. The effect often becomes visible later, in a letter of intent, as a longer earnout and less cash at close."))), /*#__PURE__*/React.createElement("div", {
     className: "tp-p"
   }, /*#__PURE__*/React.createElement("h2", null, "The engagement, priced against the value"), /*#__PURE__*/React.createElement("p", {
     className: "tp-note"
@@ -1421,7 +1421,7 @@ function TransitionProgram() {
       fontStyle: "normal",
       fontSize: 12.5
     }
-  }, "Everything in the five tabs before this one, delivered to the partner group")), /*#__PURE__*/React.createElement("b", null, K(caseView.diagnostic))), /*#__PURE__*/React.createElement("div", {
+  }, "Everything in the six tabs before this one, delivered to the partner group")), /*#__PURE__*/React.createElement("b", null, K(caseView.diagnostic))), /*#__PURE__*/React.createElement("div", {
     className: "tp-row"
   }, /*#__PURE__*/React.createElement("span", null, "Preparation retainer, monthly", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("em", {
     style: {
@@ -1447,7 +1447,7 @@ function TransitionProgram() {
     }
   }, caseView.ratio.toFixed(1), "×")), /*#__PURE__*/React.createElement("div", {
     className: "tp-call"
-  }, /*#__PURE__*/React.createElement("b", null, "Why the fee structure is the differentiator"), "Valuation firms and sell-side bankers are paid when a transaction closes. That is a perfectly honest model, and it means none of them can tell a founder to wait three years, which is the correct advice most of the time. A retainer can. Say that out loud in the first meeting, to an audience that sells fiduciary standards for a living, and watch what it does to the room."))), /*#__PURE__*/React.createElement("p", {
+  }, /*#__PURE__*/React.createElement("b", null, "Why the fee structure matters"), "Valuation firms and sell-side bankers are paid when a transaction closes. That is an honest model, and it also means they have no structural way to advise a founder to wait, even when waiting would serve the founder better. A fixed fee or retainer can give that advice."))), /*#__PURE__*/React.createElement("p", {
     className: "tp-foot"
   }, "A diagnostic and conversation framework, not an appraisal, and not tax, legal or investment advice. Multiples and benchmark ranges are calibrated to publicly reported transaction norms and should be tuned against current data before use with a client. Industry statistics referenced are from Cerulli Associates research on advisor retirement and succession. Anyone acting on any of this needs a formal valuation, deal counsel and a tax advisor.")));
 }
@@ -1473,7 +1473,7 @@ const REMEDY = {
     why: "Unsupported add-backs invite a price reduction late in the process, which is the most expensive time to lose an argument."
   },
   ops: {
-    now: "Document the service model, then audit the CRM to see whether it was actually delivered to every household.",
+    now: "Document the service model, then audit the CRM to see whether it was delivered to every household.",
     why: "A written service model that the data contradicts is worse than none. Buyers test this against records, not the deck."
   },
   books: {

@@ -179,16 +179,16 @@
       if (!vb || !vt) return;
       if (team < 0) {
         vb.textContent = 'One person holds this firm together';
-        vt.textContent = 'Every input above matters less than this one. A buyer prices a practice on what survives the founder, and right now the honest answer is not much. Moving relationships takes eighteen to thirty-six months, which is why it is the first thing to work on and the last thing anyone starts.';
+        vt.textContent = 'No other input above moves the price as much as this one. A buyer prices a practice on what survives the founder, and right now the honest answer may not be much. Moving relationships typically takes eighteen to thirty-six months, which is why it is the first thing to work on and often the last thing people start.';
       } else if (fee < 55) {
         vb.textContent = 'Too much of this revenue has to be re-earned';
-        vt.textContent = 'Recurring revenue is what a buyer underwrites. Everything else is treated as a bet on your continued effort and priced accordingly. This is usually the second-fastest lever available.';
+        vt.textContent = 'Recurring revenue is what a buyer underwrites. Everything else is treated as a bet on your continued effort and priced accordingly. This is often one of the faster levers to improve.';
       } else if (age > 70) {
         vb.textContent = 'The book is ageing faster than the firm';
-        vt.textContent = 'A buyer models the assets still there in ten years, not the ones on today\u2019s statement. Households drawing down are worth a fraction of households still accumulating, and no amount of service quality changes that arithmetic.';
+        vt.textContent = 'A buyer typically models the assets still there in ten years, not just the ones on today\u2019s statement. Households drawing down are generally worth less than households still accumulating, regardless of service quality.';
       } else if (grow < 2) {
         vb.textContent = 'Flat books get bought as run-off';
-        vt.textContent = 'Growing books get bought as businesses, and the gap between those two descriptions is most of the multiple. Growth that cannot be attributed to a repeatable source earns no credit at all.';
+        vt.textContent = 'Growing books tend to get priced as businesses, and that difference can account for much of the multiple. Growth that cannot be traced to a repeatable source typically earns little credit.';
       } else {
         vb.textContent = 'This prices well for its size';
         vt.textContent = 'The question here is probably timing and structure rather than repair. Which path you take, what it nets after tax, and whether an internal buyer could finance it are the live questions.';
@@ -274,7 +274,7 @@
           warnText.textContent = 'The firm would allocate you ' + money(k1) + ' of profit but distribute only ' +
             money(dist) + ' of it in cash. You would still owe roughly ' + money(owed) +
             ' in tax on the full allocation, leaving you ' + money(gap) +
-            ' short before a single loan payment. The fix is a mandatory tax distribution written into the operating agreement. Ask for it now, while they want you to say yes.';
+            ' short before a single loan payment. The fix is a mandatory tax distribution written into the operating agreement. It is easier to negotiate before you accept the offer than after.';
         } else {
           warn.hidden = true;
         }
@@ -287,7 +287,7 @@
             money(Math.abs(swing)) + ' a year out of your own income. That is not a reason to walk away, but it is a reason to change the shape of the deal: a smaller first tranche, a longer term, seller financing below bank rates, or a profits interest that costs nothing today.';
         } else {
           note.textContent = 'On these terms the distributions cover the debt service with about ' +
-            money(swing) + ' a year left over. Rare, and worth confirming the payout ratio is a policy rather than a good year.';
+            money(swing) + ' a year left over. That is uncommon, and worth confirming the payout ratio is a policy rather than the result of one good year.';
         }
       }
     }
