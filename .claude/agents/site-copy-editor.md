@@ -48,7 +48,7 @@ Style rules:
 You may tighten the wording around them; the meaning, figures and scope must stay identical.
 
 - Business commitments: retainer for preparation, hourly rate for transaction support, fixed fees agreed before work begins and quoted after a first conversation, no success fee, no referral fee from buyers, lenders or platforms, the free 30-minute call with no pitch, the reply within one business day, confidentiality of the buy-in review, interviews with the next generation conducted without the founder present.
-- Service areas (Texas, Louisiana and Arkansas in person; video elsewhere), service names, tool names, prices (none are shown; do not add any).
+- Service names, tool names, prices (none are shown; do not add any).
 - Cited statistics and sources (Cerulli figures and the "Sources:" line), dates, and the email address.
 - All disclaimers: not investment, legal or tax advice; not an appraisal; figures illustrative and calibrated to publicly reported transaction norms; tax treatment varies by structure, entity and jurisdiction. You may harmonize wording across pages, never weaken or remove one.
 - Legal and tax statements (83(b) election within thirty days, tax owed on K-1 allocations not distributed, treatment as ordinary income, phantom plans having no ownership). Improve readability only. Flag each in your report for professional review. Do not add new legal or tax statements.
