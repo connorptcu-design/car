@@ -337,7 +337,7 @@
           }
         })
         .finally(function () {
-          if (btn) { btn.disabled = false; btn.textContent = 'Send'; }
+          if (btn) { btn.disabled = false; btn.textContent = 'Send an Inquiry'; }
         });
     });
   }
