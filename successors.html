@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="robots" content="noindex, nofollow" />
 <title>For successors — Carry Forward</title>
-<meta name="description" content="If you have been offered equity, work out which kind it is, what it costs, and what your staying is worth to the firm." />
+<meta name="description" content="If you have been offered equity, find out which of four kinds it is, what it costs against your income and what your staying is worth to the firm." />
 <link rel="icon" href="assets/favicon.png" />
 <link rel="stylesheet" href="assets/site.css" />
 </head>
@@ -30,10 +30,11 @@
 <div class="hero">
   <div class="w">
     <div class="eyebrow alt">For the next generation</div>
-    <h1>If you have been offered equity, know which of four arrangements it is before you negotiate the percentage.</h1>
+    <h1>If you have been offered equity, it helps to know which of four arrangements it is before you negotiate the percentage.</h1>
     <p class="lede">
-      Four different things get called equity in advisory firms, and only two leave you owning
-      anything. Here is how to tell them apart.
+      Four different arrangements are sometimes called equity in advisory firms, and only two
+      give you ownership. This page explains how to tell them apart and what a buy-in could cost
+      against your income.
     </p>
     <div class="cta">
       <a class="btn" href="#buyin">Work out the buy-in</a>
@@ -44,30 +45,32 @@
 
 <section>
   <div class="w">
-    <h2>Ask which of these it is, in these words</h2>
+    <h2>Four arrangements, and what each is suited to</h2>
     <div class="qa">
       <div class="q">
         <p><strong>Real equity.</strong> Shares or units you buy and then own.</p>
-        <em>The only version you can sell. It is also the only one you have to fund, which is why
-        firms often offer one of the others and use the same word.</em>
+        <em>Suited to full ownership: it carries votes, distributions and a share of growth, and
+        it can be sold. It is also the only one of the four you pay for, so a firm may offer one
+        of the others instead. Check what the document calls it.</em>
       </div>
       <div class="q">
-        <p><strong>Profits interest.</strong> A share of everything the firm becomes worth above today's value.</p>
-        <em>Often a good fit and underused relative to its benefits. It requires no cash up front,
-        because the threshold is set at today's value, so you are paid only on what you help
-        create afterward. It lives in an LLC and requires an 83(b) election filed within thirty
-        days of the grant. Missing that window means the interest is taxed as ordinary income
-        instead.</em>
+        <p><strong>Profits interest.</strong> A share of any growth in the firm's value above today's value.</p>
+        <em>Suited to owning future growth without paying cash up front. The threshold is set at
+        today's value, so you are paid only on value created after the grant. It is held in an
+        LLC and requires an 83(b) election filed within 30 days of the grant. If that window is
+        missed, the interest is taxed as ordinary income instead.</em>
       </div>
       <div class="q">
         <p><strong>Phantom equity or appreciation rights.</strong> A future cash payment that tracks what equity would have been worth.</p>
-        <em>It can pay real money, but you own nothing, cannot sell it, and it usually ends if you
-        leave. The firm can often amend the plan's terms unilaterally.</em>
+        <em>Suited to a cash reward linked to the firm's value, without a purchase. It can pay
+        substantial amounts, but you own nothing, you cannot sell it and it commonly ends if you
+        leave. In many plans the firm can amend the terms on its own, so read the plan document
+        closely.</em>
       </div>
       <div class="q">
         <p><strong>Revenue or profit share.</strong> A percentage of what the firm brings in.</p>
-        <em>Not equity. It can be reasonable as compensation, but it does not answer the
-        ownership question.</em>
+        <em>Suited to compensation that moves with the firm's results. It is not equity, so it
+        does not answer the ownership question.</em>
       </div>
     </div>
   </div>
@@ -75,24 +78,25 @@
 
 <section id="buyin" class="alt">
   <div class="w">
-    <h2>What the buy-in would actually cost you</h2>
+    <h2>What the buy-in would cost you</h2>
     <p class="muted" style="max-width:62ch">
-      Firm cash flow is not your cash flow. This is the version that determines whether you can
-      live while you pay for it.
+      A firm's profit and your personal cash flow are different numbers. This estimate compares
+      the yearly payments on the stake with the cash it would pay you after tax, and shows the
+      effect on your yearly cash flow.
     </p>
 
     <div class="calc">
       <div class="calc-grid">
         <div>
           <div class="f">
-            <label for="bProfit"><span>Firm profit after owners are paid market wages</span>
-              <span class="numbox"><span class="numbox-aff" aria-hidden="true">$</span><input type="text" inputmode="decimal" id="bProfitBox" class="numbox-input" aria-label="Firm profit after owners are paid market wages" value="1,800,000" /></span>
+            <label for="bProfit"><span>Owner-adjusted profit of the firm, after owners are paid market wages</span>
+              <span class="numbox"><span class="numbox-aff" aria-hidden="true">$</span><input type="text" inputmode="decimal" id="bProfitBox" class="numbox-input" aria-label="Owner-adjusted profit of the firm, after owners are paid market wages" value="1,800,000" /></span>
             </label>
             <input type="range" id="bProfit" min="200" max="12000" step="25" value="1800" />
           </div>
           <div class="f">
-            <label for="bMult"><span>Multiple the firm would fetch</span>
-              <span class="numbox"><input type="text" inputmode="decimal" id="bMultBox" class="numbox-input" aria-label="Multiple the firm would fetch" value="7.5" /><span class="numbox-aff" aria-hidden="true">x</span></span>
+            <label for="bMult"><span>Multiple the firm could sell for</span>
+              <span class="numbox"><input type="text" inputmode="decimal" id="bMultBox" class="numbox-input" aria-label="Multiple the firm could sell for" value="7.5" /><span class="numbox-aff" aria-hidden="true">x</span></span>
             </label>
             <input type="range" id="bMult" min="3" max="14" step="0.1" value="7.5" />
           </div>
@@ -103,8 +107,8 @@
             <input type="range" id="bStake" min="1" max="50" step="1" value="15" />
           </div>
           <div class="f">
-            <label for="bDisc"><span>Discount off market price for an internal buyer</span>
-              <span class="numbox"><input type="text" inputmode="decimal" id="bDiscBox" class="numbox-input" aria-label="Discount off market price for an internal buyer" value="15" /><span class="numbox-aff" aria-hidden="true">%</span></span>
+            <label for="bDisc"><span>Discount to market price for an internal buyer</span>
+              <span class="numbox"><input type="text" inputmode="decimal" id="bDiscBox" class="numbox-input" aria-label="Discount to market price for an internal buyer" value="15" /><span class="numbox-aff" aria-hidden="true">%</span></span>
             </label>
             <input type="range" id="bDisc" min="0" max="45" step="1" value="15" />
           </div>
@@ -155,14 +159,14 @@
           <div style="margin-top:18px">
             <div class="row"><span>Annual debt service</span><b id="bDebt" style="color:var(--drag)">—</b></div>
             <div class="row"><span>Profit allocated to you on a K-1</span><b id="bK1">—</b></div>
-            <div class="row"><span>Cash actually distributed to you</span><b id="bDist">—</b></div>
-            <div class="row"><span>Tax you owe on the allocation</span><b id="bOwed" style="color:var(--drag)">—</b></div>
-            <div class="row tot"><span><strong>Net cash from owning it</strong></span><b id="bNet">—</b></div>
+            <div class="row"><span>Cash distributed to you</span><b id="bDist">—</b></div>
+            <div class="row"><span>Tax owed on the allocation</span><b id="bOwed" style="color:var(--drag)">—</b></div>
+            <div class="row tot"><span><strong>Net cash from owning the stake</strong></span><b id="bNet">—</b></div>
             <div class="row tot"><span><strong>Effect on your yearly cash flow</strong></span><b id="bSwing">—</b></div>
           </div>
 
           <div class="pull warn" id="bWarn" hidden>
-            <b>You would owe tax on money you never receive</b>
+            <b>You would owe tax on profit you do not receive as cash</b>
             <span id="bWarnText"></span>
           </div>
 
@@ -178,24 +182,24 @@
 
 <section>
   <div class="w narrow">
-    <h2>What your staying is worth to them</h2>
+    <h2>What your staying is worth to the firm</h2>
     <p>
-      A buyer prices a firm partly on whether clients stay once the founder leaves. If you are a
-      reason clients would stay, the firm can be worth meaningfully more with you in it than
-      without you. For a mid-sized practice, that gap can run into seven figures.
+      A buyer prices a firm partly on whether clients stay once the founder leaves. If clients
+      would stay because of you, the firm can be worth more with you in it than without you. For
+      a mid-sized practice, that difference may be in the seven figures. This is an estimate, not
+      a measured figure.
     </p>
     <p>
-      That number is rarely stated out loud, but it is central to your negotiating position. It
-      helps to treat it as a shared problem rather than a threat: the firm is worth more once
-      clients know you, and neither of you gets there without a written agreement and sustained
-      joint meetings over time. You are asking the firm to let you build the relationships that
-      create that value for both of you.
+      That figure bears on your negotiating position, and it matters to the founder as well. It
+      helps to treat it as a shared interest rather than leverage: the firm is worth more once
+      clients know you, and neither side gets there without a written agreement and sustained
+      joint client meetings over time. Put that way, you are asking the firm to let you build the
+      relationships that create value for both of you.
     </p>
     <div class="pull alt">
       <b>Consider your own counsel</b>
-      The firm's counsel represents the firm, which in practice often means the founder. They may
-      be easy to work with, but they are not your lawyer. Independent counsel is a common
-      safeguard, and it often costs a few thousand dollars against a decision of this size.
+      The firm's counsel represents the firm, not you, so independent advice on your terms is a
+      common safeguard. As a rough estimate, the cost is a few thousand dollars, and fees vary.
     </div>
   </div>
 </section>
@@ -208,18 +212,19 @@
         <div>
           <h3>Two weeks, fixed fee</h3>
           <p>
-            What you are actually being offered, what it is worth, whether you can carry it against
-            your real income, what your staying is worth to the firm, and the ten things that have
-            to be in the document before you sign. Priced for an individual paying personally,
-            because that is who buys it.
+            The review covers what you are being offered, what it is worth, whether you can carry
+            it against your income, what your staying is worth to the firm and the 10 items that
+            should be in the document before you sign. It is priced for an individual paying
+            personally.
           </p>
         </div>
         <div class="price">Fixed fee</div>
       </div>
     </div>
     <p class="muted" style="margin-top:16px">
-      Confidential, and we do not contact your firm. If it later makes sense to bring the founder
-      into the conversation, that is your call and your timing.
+      The review is confidential, and we do not contact your firm. If it later makes sense to
+      bring the founder into the conversation, that decision and its timing are yours. After a
+      first conversation we quote a fixed fee, which is agreed before any work begins.
     </p>
     <p style="margin-top:22px"><a class="btn" href="https://scheduler.zoom.us/connor-polan-6bxqga/30-mins-with-carry-forward-partners" target="_blank" rel="noopener">Book a review</a></p>
   </div>

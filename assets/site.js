@@ -178,20 +178,20 @@
       var vb = $('verdict'), vt = $('verdictText');
       if (!vb || !vt) return;
       if (team < 0) {
-        vb.textContent = 'One person holds this firm together';
-        vt.textContent = 'No other input above moves the price as much as this one. A buyer prices a practice on what survives the founder, and right now the honest answer may not be much. Moving relationships typically takes eighteen to thirty-six months, which is why it is the first thing to work on and often the last thing people start.';
+        vb.textContent = 'Much of the value rests on one advisor';
+        vt.textContent = 'Team structure is one of the larger inputs in this estimate. A buyer prices a practice on what survives the founder, and with one advisor the answer may be limited. Moving relationships can take an estimated 18 to 36 months, so a useful next step is to identify which client relationships a second advisor could begin to lead.';
       } else if (fee < 55) {
-        vb.textContent = 'Too much of this revenue has to be re-earned';
-        vt.textContent = 'Recurring revenue is what a buyer underwrites. Everything else is treated as a bet on your continued effort and priced accordingly. This is often one of the faster levers to improve.';
+        vb.textContent = 'A smaller share of revenue recurs each year';
+        vt.textContent = 'Buyers typically place the most value on recurring revenue and treat the rest as dependent on your continued effort. This is often one of the faster levers to improve, so a useful next step is to review which revenue could move to a recurring fee.';
       } else if (age > 70) {
-        vb.textContent = 'The book is ageing faster than the firm';
-        vt.textContent = 'A buyer typically models the assets still there in ten years, not just the ones on today\u2019s statement. Households drawing down are generally worth less than households still accumulating, regardless of service quality.';
+        vb.textContent = 'The client base is older';
+        vt.textContent = 'A buyer typically models the assets still there in 10 years, not only those on today\u2019s statement. Households that are drawing down are generally worth less than households still accumulating, whatever the quality of service. A useful next step is to check how many households are drawing down and whether younger family members are clients.';
       } else if (grow < 2) {
-        vb.textContent = 'Flat books get bought as run-off';
-        vt.textContent = 'Growing books tend to get priced as businesses, and that difference can account for much of the multiple. Growth that cannot be traced to a repeatable source typically earns little credit.';
+        vb.textContent = 'Slow growth lowers the multiple';
+        vt.textContent = 'Buyers tend to price growing practices as businesses and flat ones as run-off, and that difference can account for much of the multiple. Growth that cannot be traced to a repeatable source typically earns little credit, so a useful next step is to identify where new clients come from.';
       } else {
-        vb.textContent = 'This prices well for its size';
-        vt.textContent = 'The question here is probably timing and structure rather than repair. Which path you take, what it nets after tax, and whether an internal buyer could finance it are the live questions.';
+        vb.textContent = 'No single input stands out as a weakness';
+        vt.textContent = 'On these inputs, the open questions are more likely timing and structure than repair: which path you take, what it nets after tax, and whether an internal buyer could finance it. Those are the questions to work through next.';
       }
     }
 
@@ -271,10 +271,10 @@
       if (warn && warnText) {
         if (gap > 0) {
           warn.hidden = false;
-          warnText.textContent = 'The firm would allocate you ' + money(k1) + ' of profit but distribute only ' +
+          warnText.textContent = 'In this scenario the firm would allocate you ' + money(k1) + ' of profit but distribute only ' +
             money(dist) + ' of it in cash. You would still owe roughly ' + money(owed) +
             ' in tax on the full allocation, leaving you ' + money(gap) +
-            ' short before a single loan payment. The fix is a mandatory tax distribution written into the operating agreement. It is easier to negotiate before you accept the offer than after.';
+            ' short before any loan payment. A mandatory tax distribution written into the operating agreement is a common way to address this, and it is easier to negotiate before you accept the offer than after.';
         } else {
           warn.hidden = true;
         }
@@ -283,11 +283,11 @@
       var note = $('bNote');
       if (note) {
         if (swing < 0) {
-          note.textContent = 'On these terms the stake does not pay for itself. You would fund about ' +
-            money(Math.abs(swing)) + ' a year out of your own income. That is not a reason to walk away, but it is a reason to change the shape of the deal: a smaller first tranche, a longer term, seller financing below bank rates, or a profits interest that costs nothing today.';
+          note.textContent = 'On these terms the stake would not cover its own payments. You would fund about ' +
+            money(Math.abs(swing)) + ' a year out of your own income. That does not mean the deal cannot work, but the structure may need to change. Options to examine are a smaller first tranche, a longer term, seller financing below bank rates or a profits interest that requires no cash up front.';
         } else {
-          note.textContent = 'On these terms the distributions cover the debt service with about ' +
-            money(swing) + ' a year left over. That is uncommon, and worth confirming the payout ratio is a policy rather than the result of one good year.';
+          note.textContent = 'On these terms the distributions, after tax on the allocation, cover the debt service with about ' +
+            money(swing) + ' a year left over. Before relying on that, confirm that the payout ratio is a firm policy rather than the result of one strong year.';
         }
       }
     }
@@ -332,7 +332,7 @@
         })
         .catch(function () {
           if (s) {
-            s.textContent = 'Something went wrong sending that. Please email connorptcu@outlook.com directly.';
+            s.textContent = 'Your message did not send. Please email connorptcu@outlook.com directly.';
             s.style.display = 'block';
           }
         })

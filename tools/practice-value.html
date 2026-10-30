@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="robots" content="noindex, nofollow" />
 <link rel="icon" href="../assets/favicon.png" />
-<title>Practice Value and Exit Paths</title>
+<title>Practice value and exit paths</title>
 <style>
   html,body{margin:0;padding:0;background:#FFFFFF;min-height:100%}
   #root{min-height:100vh}
@@ -90,7 +90,7 @@ const TEAMS = [{
   adj: 0.0
 }, {
   id: "g2",
-  label: "A second-generation team that owns relationships",
+  label: "A next-generation advisor who owns relationships",
   adj: 0.35
 }];
 const LTCG = 0.238;
@@ -115,7 +115,7 @@ function priceFirm(s) {
     adj: clamp((61 - s.clientAge) * 0.035, -0.5, 0.5)
   }, {
     key: "conc",
-    label: "Revenue in the top ten households",
+    label: "Revenue in the top 10 households",
     detail: s.conc + "%, against a 25% norm",
     adj: clamp((25 - s.conc) * 0.012, -0.4, 0.4)
   }, {
@@ -215,11 +215,11 @@ function PracticeValue() {
       noteRate: 0.065,
       goodwill: 0.7,
       years: 8,
-      risk: "You carry the buyer's credit. If they can't grow it, you're financing your own retirement."
+      risk: "You carry the buyer's credit risk. If the buyer cannot grow the practice, you are financing part of your own transition."
     }), build({
       id: "aggregator",
       name: "Aggregator or platform",
-      blurb: "Large cash payment, equity in someone else's firm, retention hurdles.",
+      blurb: "A large cash payment, equity in the buyer's firm and retention conditions.",
       factor: 1.08,
       cashPct: 0.65,
       equityPct: 0.25,
@@ -227,11 +227,11 @@ function PracticeValue() {
       earnHit: 0.8,
       goodwill: 0.85,
       years: 3,
-      risk: "The rollover equity is illiquid until the platform sells again, and you no longer set the terms."
+      risk: "The rollover equity is illiquid until the platform sells again, and the platform, not you, sets the terms."
     }), build({
       id: "external",
       name: "Open-market sale",
-      blurb: "Competitive process with an outside buyer.",
+      blurb: "A competitive process with an outside buyer.",
       factor: 1.0,
       cashPct: 0.55,
       notePct: 0.3,
@@ -241,7 +241,7 @@ function PracticeValue() {
       earnHit: 0.75,
       goodwill: 0.9,
       years: 5,
-      risk: "Client transition risk sits in the earnout. Every household that leaves comes out of your number."
+      risk: "Client transition risk sits in the earnout: each household that leaves reduces the amount you receive."
     })];
   }, [model]);
   const levers = useMemo(() => {
@@ -254,25 +254,25 @@ function PracticeValue() {
       }) - model.value
     });
     if (team !== "g2") out.push({
-      label: "Give a second advisor real ownership of relationships",
+      label: "Give a second advisor ownership of client relationships",
       delta: recompute({
         team: "g2"
       }) - model.value
     });
     if (conc > 15) out.push({
-      label: "Bring the top ten households down ten points of revenue",
+      label: "Reduce the top 10 households' share of revenue by 10 percentage points",
       delta: recompute({
         conc: Math.max(10, conc - 10)
       }) - model.value
     });
     out.push({
-      label: "Add three points of organic growth a year",
+      label: "Add 3 percentage points of organic growth a year",
       delta: recompute({
         growth: growth + 3
       }) - model.value
     });
     if (clientAge > 60) out.push({
-      label: "Bring the average client age down five years",
+      label: "Lower the average client age by five years",
       delta: recompute({
         clientAge: clientAge - 5
       }) - model.value
@@ -284,7 +284,7 @@ function PracticeValue() {
   const programAfterTax = programAward * (1 - ORDINARY);
   const bestIndependent = Math.max(...paths.map(p => p.afterTax));
   const drags = model.lines.filter(l => l.adj < -0.05).sort((a, b) => a.adj - b.adj).slice(0, 3);
-  const summary = ["Practice snapshot", "Trailing twelve months of revenue: " + short(model.t12) + " on " + aumFmt(aum) + " of assets", "Estimated enterprise value: " + short(model.low) + " to " + short(model.high), "Implied multiple: " + model.mult.toFixed(1) + "x owner-adjusted profit, " + model.revMult.toFixed(2) + "x revenue", "", "What is holding the number down", ...(drags.length ? drags.map(d => "  " + d.label + " (" + d.detail + ") costs about " + short(Math.abs(d.pts) * model.ebitda)) : ["  Nothing material. This book prices at or above its size cohort."]), "", "Highest-value moves", ...levers.map(l => "  " + l.label + ": " + short(l.delta)), "", "Paths out, after tax", ...paths.map(p => "  " + p.name + ": " + short(p.cash) + " at close, " + short(p.afterTax) + " net in today's dollars, over " + p.years + " years"), "", "Estimate only. Not an appraisal, and not tax or legal advice."].join("\n");
+  const summary = ["Practice snapshot", "Revenue, last 12 months: " + short(model.t12) + " on " + aumFmt(aum) + " of assets", "Estimated enterprise value: " + short(model.low) + " to " + short(model.high), "Implied multiple: " + model.mult.toFixed(1) + "x owner-adjusted profit, " + model.revMult.toFixed(2) + "x revenue", "", "What lowers the estimate", ...(drags.length ? drags.map(d => "  " + d.label + " (" + d.detail + ") lowers the estimate by about " + short(Math.abs(d.pts) * model.ebitda)) : ["  No single factor lowers the estimate materially."]), "", "Changes with the largest estimated effect", ...levers.map(l => "  " + l.label + ": " + short(l.delta)), "", "Paths out, after tax", ...paths.map(p => "  " + p.name + ": " + short(p.cash) + " at close, " + short(p.afterTax) + " after tax in today's dollars, paid out over about " + p.years + " years"), "", "Estimate only. Not an appraisal, and not tax, legal or investment advice."].join("\n");
   return /*#__PURE__*/React.createElement("div", {
     className: "pv-root"
   }, /*#__PURE__*/React.createElement("style", null, `
@@ -407,9 +407,9 @@ function PracticeValue() {
     className: "pv-wrap"
   }, /*#__PURE__*/React.createElement("h1", {
     className: "pv-title"
-  }, "What your practice is worth, and what it costs to wait"), /*#__PURE__*/React.createElement("p", {
+  }, "What your practice is worth, and what waiting may cost"), /*#__PURE__*/React.createElement("p", {
     className: "pv-lede"
-  }, "What a practice is worth is often decided years before it sells. This shows the number now, the reasons behind it, and what each path out pays after tax."), /*#__PURE__*/React.createElement("div", {
+  }, "What a practice is worth is often shaped years before any sale. This tool shows the estimate today, the factors behind it and what each path out pays after tax."), /*#__PURE__*/React.createElement("div", {
     className: "pv-grid"
   }, /*#__PURE__*/React.createElement("div", {
     className: "pv-panel"
@@ -417,7 +417,7 @@ function PracticeValue() {
     className: "pv-sec"
   }, "Your practice"), /*#__PURE__*/React.createElement("p", {
     className: "pv-note"
-  }, "Nine facts. Estimates are fine."), /*#__PURE__*/React.createElement("div", {
+  }, "10 inputs. Estimates are fine."),/*#__PURE__*/React.createElement("div", {
     className: "pv-field"
   }, /*#__PURE__*/React.createElement("div", {
     className: "pv-lab"
@@ -439,7 +439,7 @@ function PracticeValue() {
     step: 5,
     display: aumFmt(aum)
   }), /*#__PURE__*/React.createElement(Slider, {
-    label: "Revenue, last twelve months",
+    label: "Revenue, last 12 months",
     unit: "k",
     log: true,
     value: rev,
@@ -467,7 +467,7 @@ function PracticeValue() {
     step: 1,
     display: clientAge
   }), /*#__PURE__*/React.createElement(Slider, {
-    label: "Revenue in your top ten households",
+    label: "Revenue in your top 10 households",
     unit: "pct",
     value: conc,
     set: setConc,
@@ -539,22 +539,22 @@ function PracticeValue() {
       fontSize: 18,
       marginBottom: 6
     }
-  }, "Your firm's retirement program pays about ", short(programAward)), /*#__PURE__*/React.createElement("div", {
+  }, "A firm retirement program at this level would pay about ", short(programAward)), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 13.5,
       color: "var(--muted)"
     }
-  }, "That is roughly 175% of trailing production, paid over four years and taxed as ordinary income, so about ", short(programAfterTax), " lands in your pocket. The same book owned independently nets around ", short(bestIndependent), " after tax. The gap of ", short(bestIndependent - programAfterTax), " is the price of the affiliation. It is not a reason to move. It is a number worth knowing before you sign the program paperwork, because signing it often ends the conversation."))), /*#__PURE__*/React.createElement("div", {
+  }, "This assumes roughly 175% of trailing production, paid over four years and taxed as ordinary income, so about ", short(programAfterTax), " would reach you after tax. The best of the independent paths below nets around ", short(bestIndependent), " after tax. The difference of ", short(bestIndependent - programAfterTax), " is what the affiliation costs relative to independent ownership. That is not a reason to move on its own. It is a number to know before you sign program paperwork, because signing may limit your options."))), /*#__PURE__*/React.createElement("div", {
     className: "pv-panel"
   }, /*#__PURE__*/React.createElement("h2", {
     className: "pv-sec"
   }, "Where the number comes from"), /*#__PURE__*/React.createElement("p", {
     className: "pv-note"
-  }, "Every practice starts at a multiple set by the size of its owner-adjusted profit. Everything after that is something you control."), /*#__PURE__*/React.createElement("table", {
+  }, "Each practice starts at a base multiple set by the size of its owner-adjusted profit. The adjustments below show how other characteristics raise or lower it."),/*#__PURE__*/React.createElement("table", {
     className: "pv-ledger"
   }, /*#__PURE__*/React.createElement("tbody", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("div", {
     className: "pv-l1"
-  }, "Starting multiple for earnings this size"), /*#__PURE__*/React.createElement("div", {
+  }, "Base multiple for earnings of this size"),/*#__PURE__*/React.createElement("div", {
     className: "pv-l2"
   }, short(model.ebitda), " of owner-adjusted profit")), /*#__PURE__*/React.createElement("td", {
     className: "pv-num"
@@ -593,7 +593,7 @@ function PracticeValue() {
     }, pos ? "+" : "\u2212", short(Math.abs(l.pts) * model.ebitda)));
   }), /*#__PURE__*/React.createElement("tr", {
     className: "pv-total"
-  }, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("b", null, "Where you land")), /*#__PURE__*/React.createElement("td", {
+  }, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("b", null, "Resulting multiple and value")), /*#__PURE__*/React.createElement("td", {
     className: "pv-num"
   }, /*#__PURE__*/React.createElement("b", null, model.mult.toFixed(2), "×")), /*#__PURE__*/React.createElement("td", {
     className: "pv-num"
@@ -602,9 +602,9 @@ function PracticeValue() {
     style: {
       marginBottom: 2
     }
-  }, "Three ways out of the same book"), /*#__PURE__*/React.createElement("p", {
+  }, "Three paths for the same practice"), /*#__PURE__*/React.createElement("p", {
     className: "pv-note"
-  }, "Headline prices are not comparable. These are, because they account for how the money is paid and how it is taxed."), /*#__PURE__*/React.createElement("div", {
+  }, "Headline prices are not directly comparable. These figures adjust for how the money is paid and how it is taxed, so the paths can be compared."),/*#__PURE__*/React.createElement("div", {
     className: "pv-paths"
   }, paths.map(p => /*#__PURE__*/React.createElement("div", {
     className: "pv-path",
@@ -642,9 +642,9 @@ function PracticeValue() {
     className: "pv-panel"
   }, /*#__PURE__*/React.createElement("h2", {
     className: "pv-sec"
-  }, "What the next few years are worth"), /*#__PURE__*/React.createElement("p", {
+  }, "Changes that could add value"), /*#__PURE__*/React.createElement("p", {
     className: "pv-note"
-  }, "Value created by changing the practice, not by selling it."), levers.map((l, i) => /*#__PURE__*/React.createElement("div", {
+  }, "Estimated value from changing the practice, not from selling it."),levers.map((l, i) => /*#__PURE__*/React.createElement("div", {
     className: "pv-lever",
     key: i
   }, /*#__PURE__*/React.createElement("span", null, l.label), /*#__PURE__*/React.createElement("b", null, l.delta > 0 ? "+" : "", short(l.delta))))), /*#__PURE__*/React.createElement("div", {
@@ -653,14 +653,14 @@ function PracticeValue() {
     className: "pv-sec"
   }, "Questions this raises"), /*#__PURE__*/React.createElement("p", {
     className: "pv-note"
-  }, "The ones worth answering before a buyer asks them for you."), drags.length === 0 && /*#__PURE__*/React.createElement("div", {
+  }, "Worth answering before a buyer asks them."), drags.length === 0 && /*#__PURE__*/React.createElement("div", {
     className: "pv-ask"
-  }, "This book prices above its cohort on every driver. The question is timing, not repair.", /*#__PURE__*/React.createElement("em", null, "What would have to be true for you to sell in the next thirty-six months?")), drags.map(d => /*#__PURE__*/React.createElement("div", {
+  }, "No single factor lowers this estimate materially, so the open question is timing rather than repair.", /*#__PURE__*/React.createElement("em", null, "What would need to be true for you to sell or step back within the next 36 months?")),drags.map(d => /*#__PURE__*/React.createElement("div", {
     className: "pv-ask",
     key: d.key
   }, ASKS[d.key].q, /*#__PURE__*/React.createElement("em", null, ASKS[d.key].why))), /*#__PURE__*/React.createElement("div", {
     className: "pv-ask"
-  }, "If you were unable to work starting tomorrow, who calls your clients, and what does your family get paid?", /*#__PURE__*/React.createElement("em", null, "An estimated two-thirds of advisors have no written continuity agreement. Without one, a book this size is worth a fraction of ", short(model.value), " to an estate."))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("button", {
+  }, "If you were unable to work starting tomorrow, who would call your clients, and what would your family receive?", /*#__PURE__*/React.createElement("em", null, "An estimated two-thirds of advisors have no written continuity agreement. Without one, an estate may realize only a fraction of the ", short(model.value), " estimate."))),/*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("button", {
     className: "pv-btn",
     onClick: () => setShowSummary(s => !s)
   }, showSummary ? "Hide written summary" : "Show written summary"), showSummary && /*#__PURE__*/React.createElement("textarea", {
@@ -670,36 +670,36 @@ function PracticeValue() {
     onFocus: e => e.target.select()
   })))), /*#__PURE__*/React.createElement("p", {
     className: "pv-foot"
-  }, "An estimate built from public transaction norms, not an appraisal, and not tax or legal advice. Ranges assume a clean transition, no litigation or regulatory history, and a normal deal market. Tax figures use a 23.8% long-term capital gains rate and a 37% ordinary rate with no state tax. Anyone acting on this should get a formal valuation and have counsel and a tax advisor price the structure.")));
+  }, "An estimate, illustrative and calibrated to publicly reported transaction norms. It is not an appraisal, and not tax, legal or investment advice. Ranges assume a clean transition, no litigation or regulatory history and a normal deal market. Tax figures use a 23.8% long-term capital gains rate and a 37% ordinary rate with no state tax. Anyone acting on this should obtain a formal valuation and have counsel and a tax advisor price the structure.")));
 }
 const ASKS = {
   mix: {
     q: "How much of your revenue would still arrive if you stopped selling anything new tomorrow?",
-    why: "Recurring revenue is often one of the largest drivers of what a buyer will pay. Transactional revenue is treated as a bet on your continued effort."
+    why: "Recurring revenue is often one of the largest factors in what a buyer will pay. Transactional revenue may be treated as dependent on your continued effort."
   },
   age: {
-    q: "Of your twenty largest households, how many are already drawing down?",
-    why: "A buyer prices the assets that remain in ten years, not the ones on the statement today."
+    q: "Of your 20 largest households, how many are already drawing down?",
+    why: "A buyer typically prices the assets that remain in 10 years, not those on today's statement."
   },
   conc: {
     q: "Which single client leaving would change how you feel about your year?",
-    why: "Concentration is priced as risk. The buyer assumes the largest relationships are yours personally and may not transfer."
+    why: "Concentration is priced as risk. A buyer may assume the largest relationships are yours personally and may not transfer."
   },
   growth: {
     q: "Where did your last five new households come from, and can that happen without you?",
-    why: "Flat books are bought as run-off. Growing books are bought as businesses, and the difference shows up in the multiple."
+    why: "Buyers may price flat practices as run-off and growing practices as businesses, and the difference can show up in the multiple."
   },
   ret: {
     q: "What did the clients who left last year have in common?",
-    why: "Retention below the mid-nineties reads as a service model problem, and buyers underwrite it into the earnout."
+    why: "Retention below the mid-90s can read as a service-model problem, and buyers may reflect it in the earnout."
   },
   team: {
     q: "Which of your clients would take a meeting without you in the room?",
-    why: "If the answer is none, you are not selling a practice. You are selling your own calendar, and it prices accordingly."
+    why: "If the answer is none, a buyer may see the practice as dependent on you personally and price it accordingly."
   },
   chan: {
-    q: "Do you own this book, or does it revert to your firm when you retire?",
-    why: "Ownership determines whether there is an enterprise to value at all."
+    q: "Do you own this book, or does it revert to your firm when you leave?",
+    why: "Who owns the book determines whether there is an enterprise to value."
   }
 };
 function Slider({

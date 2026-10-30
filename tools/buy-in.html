@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="robots" content="noindex, nofollow" />
 <link rel="icon" href="../assets/favicon.png" />
-<title>Buy-In Evaluation</title>
+<title>Buy-in evaluation</title>
 <style>
   html,body{margin:0;padding:0;background:#FFFFFF;min-height:100%}
   #root{min-height:100vh}
@@ -68,18 +68,18 @@ const EQUITY = [{
   dist: "Yes",
   growth: "Yes",
   tax: "Capital gain when you eventually sell",
-  note: "The only version where you own something you can sell. It is also the only version you have to fund, which is why so many firms offer one of the others instead and call it the same thing.",
+  note: "Suited to full ownership: it carries votes, distributions and a share of growth, and it can be sold. It is also the only one of the four you pay for, so a firm may offer one of the others instead. Check what the document calls it.",
   real: true
 }, {
   id: "profits",
   name: "Profits interest",
-  sub: "A share of everything the firm becomes worth above today's value",
+  sub: "A share of any growth in the firm's value above today's value",
   cost: "Nothing up front",
   vote: "Usually none",
   dist: "Yes, on future profit",
   growth: "Yes, above a threshold",
-  tax: "Capital gain, if it is papered correctly and the election is filed on time",
-  note: "Often a good fit, and underused relative to its benefits. You get the upside without writing a cheque, because the threshold is set at today's value so you are only paid on what you help create. It lives in an LLC, it needs an eighty-three (b) election filed within thirty days, and missing that window converts the whole thing to ordinary income.",
+  tax: "Capital gain, if it is documented correctly and the election is filed on time",
+  note: "Suited to owning future growth without paying cash up front. The threshold is set at today's value, so you are paid only on value created after the grant. It is held in an LLC and requires an 83(b) election filed within 30 days of the grant. If that window is missed, the interest is taxed as ordinary income instead.",
   real: true
 }, {
   id: "phantom",
@@ -90,7 +90,7 @@ const EQUITY = [{
   dist: "No",
   growth: "Tracks it",
   tax: "Ordinary income in the year it pays out",
-  note: "This functions like a bonus tied to a formula rather than true ownership. It can be worth real money, but you own nothing, you cannot sell it, it usually ends if you leave, and the firm can often amend the plan. If someone describes this as making you a partner, they are describing a deferred bonus.",
+  note: "Suited to a cash reward linked to the firm's value, without a purchase. It works like a deferred payment calculated by a formula, not ownership. It can pay substantial amounts, but you own nothing, you cannot sell it and it commonly ends if you leave. In many plans the firm can amend the terms, so read the plan document closely. If an offer describes this as partnership, ask what ownership rights come with it.",
   real: false
 }, {
   id: "revshare",
@@ -101,10 +101,10 @@ const EQUITY = [{
   dist: "Effectively yes",
   growth: "No",
   tax: "Ordinary income",
-  note: "Not equity. It pays you while you are there and stops when you are not, and it gives you no claim on the value of what you helped build. Reasonable as compensation. Not an answer to the ownership question.",
+  note: "Suited to compensation that moves with the firm's results. It is not equity: it pays you while you are at the firm and stops when you leave, and it gives you no claim on the value you helped build. It does not answer the ownership question.",
   real: false
 }];
-const PAPER = [["Exactly what you are receiving, named correctly.", "Equity, profits interest, phantom or revenue share. The word partner appears in none of those definitions, so make the document say which one it is."], ["The valuation method, written as a method rather than a number.", "Who appraises, how often, what standard of value, and whether minority discounts apply. A number agreed today is often stale within eighteen months, and you may end up on the wrong side of it."], ["Your vesting schedule, and what happens if you are fired without cause.", "Unvested interests that disappear on termination hand the other side a reason to terminate you the month before a sale. Accelerate on a change of control and on termination without cause."], ["Tag-along rights.", "If the founder sells the firm, you sell alongside on the same terms. Without this clause the founder can take a premium for control and leave you a minority holder in a firm owned by someone you have never met."], ["Drag-along terms, and the floor underneath them.", "The mirror image. They can force you to sell. Fine, provided there is a minimum price and the same terms apply to everyone."], ["Distribution policy, in writing.", "Specifically, a mandatory tax distribution. Without it you can owe tax on income you never received, which is one of the most common ways a buy-in becomes a personal cash crisis."], ["What happens to your interest if you leave, and at what price.", "Many agreements repurchase at a haircut for a voluntary departure before a stated age. Know the number, know the age, and know whether resigning in year four costs you more than staying."], ["Whether your purchase note survives your employment.", "If you still owe money on shares you no longer hold because you left, that is not a partnership. Tie the note and the interest together."], ["What information you are entitled to, and how often.", "Financial statements, the K-1 on time, and the valuation. Owners who have to ask for the numbers are not really owners."], ["Who can dilute you, and under what conditions.", "New partners, new capital, or a platform investment can all shrink your share. Pre-emptive rights or an anti-dilution provision cost nothing to include today."]];
+const PAPER = [["What you are receiving, named correctly.", "Equity, profits interest, phantom or revenue share. The word partner appears in none of those definitions, so the document should say which one it is."], ["The valuation method, written as a method rather than a number.", "Who appraises, how often, what standard of value, and whether minority discounts apply. A number agreed today can be out of date within 18 months, and you may end up on the wrong side of it."], ["Your vesting schedule, and what happens if you are terminated without cause.", "Unvested interests that disappear on termination give the other side a reason to terminate you shortly before a sale. Consider acceleration on a change of control and on termination without cause."], ["Tag-along rights.", "If the founder sells the firm, you sell alongside on the same terms. Without this clause, a founder can sell control at a premium and leave you as a minority holder in a firm owned by someone new."], ["Drag-along terms, and the floor underneath them.", "The mirror image: the majority can require you to sell. That can be reasonable if there is a minimum price and the same terms apply to every seller."], ["Distribution policy, in writing.", "Specifically, a mandatory tax distribution. Without one, you can owe tax on profit allocated to you but not paid out, which is a common way for a buy-in to strain personal cash flow."], ["What happens to your interest if you leave, and at what price.", "Some agreements repurchase at a discount for a voluntary departure before a stated age. Find out the price and the age, and check whether resigning in year four costs you more than staying."], ["Whether your purchase note continues after your employment ends.", "If you still owe money on shares you no longer hold because you left, the arrangement is no longer a partnership. Consider tying the note and the interest together."], ["What information you are entitled to, and how often.", "Financial statements, a timely K-1 and the valuation. Owners generally need regular access to the numbers."], ["Who can dilute you, and under what conditions.", "New partners, new capital or a platform investment can all shrink your share. Pre-emptive rights or an anti-dilution provision can protect against this, and they are easiest to include at the outset."]];
 function G2BuyIn() {
   const [tab, setTab] = useState("offer");
   const [kind, setKind] = useState("real");
@@ -260,13 +260,13 @@ function G2BuyIn() {
     className: "g2-w"
   }, /*#__PURE__*/React.createElement("h1", null, "If you have been offered equity, this works out what it is worth."), /*#__PURE__*/React.createElement("p", {
     className: "g2-lede"
-  }, "Five questions, in the order that matters. What you are being offered, whether you can pay for it, what you are worth to the person offering it, whether it beats staying an employee, and what has to be in the document before you sign."), /*#__PURE__*/React.createElement("div", {
+  }, "Five questions, in this order: what you are being offered, whether you can pay for it, what your staying is worth to the firm, whether buying in beats staying an employee, and what should be in the document before you sign."),/*#__PURE__*/React.createElement("div", {
     className: "g2-bar"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, K(m.price)), /*#__PURE__*/React.createElement("span", null, "Your buy-in")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, K(m.debtService)), /*#__PURE__*/React.createElement("span", null, "Annual payment")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", {
     style: {
       color: m.afterBuyIn < 0 ? "#E6A28E" : undefined
     }
-  }, K(m.afterBuyIn)), /*#__PURE__*/React.createElement("span", null, "Cash left over")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, K(leverage.delta)), /*#__PURE__*/React.createElement("span", null, "What you're worth to them")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, tenYear.edge >= 0 ? "+" : "", K(tenYear.edge)), /*#__PURE__*/React.createElement("span", null, "Ten-year edge"))), /*#__PURE__*/React.createElement("div", {
+  }, K(m.afterBuyIn)), /*#__PURE__*/React.createElement("span", null, "Free cash after buy-in")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, K(leverage.delta)), /*#__PURE__*/React.createElement("span", null, "Your value to the firm")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, tenYear.edge >= 0 ? "+" : "", K(tenYear.edge)), /*#__PURE__*/React.createElement("span", null, "10-year difference"))), /*#__PURE__*/React.createElement("div", {
     className: "g2-tabs"
   }, TABS.map(([id, label]) => /*#__PURE__*/React.createElement("button", {
     key: id,
@@ -275,9 +275,9 @@ function G2BuyIn() {
     onClick: () => setTab(id)
   }, label))), tab === "offer" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     className: "g2-p"
-  }, /*#__PURE__*/React.createElement("h2", null, "First, find out what the word means here"), /*#__PURE__*/React.createElement("p", {
+  }, /*#__PURE__*/React.createElement("h2", null, "First, work out which arrangement this is"), /*#__PURE__*/React.createElement("p", {
     className: "g2-note"
-  }, "Four different things get called equity in advisory firms. Three of them are compensation. Only two leave you owning something. Ask which one this is before you ask about the percentage."), EQUITY.map(e => /*#__PURE__*/React.createElement("button", {
+  }, "Four different arrangements are sometimes called equity in advisory firms, and only two leave you owning something. It helps to know which one this is before you negotiate the percentage."), EQUITY.map(e => /*#__PURE__*/React.createElement("button", {
     key: e.id,
     className: "g2-opt",
     "data-on": kind === e.id,
@@ -317,8 +317,8 @@ function G2BuyIn() {
     className: "g2-p"
   }, /*#__PURE__*/React.createElement("h2", null, "The firm, as you understand it"), /*#__PURE__*/React.createElement("p", {
     className: "g2-note"
-  }, "If you cannot fill these in, that is the finding. Ask for the numbers before you negotiate anything, and treat reluctance to share them as information."), /*#__PURE__*/React.createElement(Rng, {
-    label: "Adjusted profit after owners are paid market wages",
+  }, "If you cannot fill these in, the missing numbers are the first thing to ask the firm for. It is easier to negotiate once both sides are working from the same figures."), /*#__PURE__*/React.createElement(Rng, {
+    label: "Owner-adjusted profit, after owners are paid market wages",
     unit: "k",
     v: profit,
     set: setProfit,
@@ -327,7 +327,7 @@ function G2BuyIn() {
     step: 25,
     d: K(profit)
   }), /*#__PURE__*/React.createElement(Rng, {
-    label: "Multiple the firm would fetch",
+    label: "Multiple the firm could sell for",
     unit: "x",
     v: mult,
     set: setMult,
@@ -345,7 +345,7 @@ function G2BuyIn() {
     step: 1,
     d: pct(stake)
   }), /*#__PURE__*/React.createElement(Rng, {
-    label: "Discount off market price for an internal buyer",
+    label: "Discount to market price for an internal buyer",
     unit: "pct",
     v: discount,
     set: setDiscount,
@@ -364,7 +364,7 @@ function G2BuyIn() {
     d: pct(payout)
   }), /*#__PURE__*/React.createElement("div", {
     className: "g2-row g2-tot"
-  }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("b", null, "Implied value of the whole firm")), /*#__PURE__*/React.createElement("b", null, K(m.ev))), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("b", null, "Implied enterprise value of the firm")), /*#__PURE__*/React.createElement("b", null, K(m.ev))), /*#__PURE__*/React.createElement("div", {
     className: "g2-row"
   }, /*#__PURE__*/React.createElement("span", null, "Your stake, before the discount"), /*#__PURE__*/React.createElement("b", null, K(m.ev * stake / 100))), /*#__PURE__*/React.createElement("div", {
     className: "g2-row"
@@ -374,7 +374,7 @@ function G2BuyIn() {
     className: "g2-p"
   }, /*#__PURE__*/React.createElement("h2", null, "Your side of it"), /*#__PURE__*/React.createElement("p", {
     className: "g2-note"
-  }, "Firm cash flow is not your cash flow. This is the version that determines whether you can live."), /*#__PURE__*/React.createElement(Rng, {
+  }, "Firm cash flow is different from your personal cash flow. This tab estimates whether you can cover your living costs while you pay for the stake."), /*#__PURE__*/React.createElement(Rng, {
     label: "Your compensation today",
     unit: "k",
     v: comp,
@@ -420,7 +420,7 @@ function G2BuyIn() {
     step: 5,
     d: K(living)
   }), /*#__PURE__*/React.createElement(Rng, {
-    label: "Existing debt payments a year",
+    label: "Existing debt payments per year",
     unit: "k",
     v: otherDebt,
     set: setOtherDebt,
@@ -439,7 +439,7 @@ function G2BuyIn() {
     d: pct(taxRate)
   })), /*#__PURE__*/React.createElement("div", {
     className: "g2-p"
-  }, /*#__PURE__*/React.createElement("h2", null, "Whether it works"), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("h2", null, "What it does to your cash flow"), /*#__PURE__*/React.createElement("div", {
     className: "g2-row"
   }, /*#__PURE__*/React.createElement("span", null, "Purchase price"), /*#__PURE__*/React.createElement("b", null, K(m.price))), /*#__PURE__*/React.createElement("div", {
     className: "g2-row"
@@ -453,9 +453,9 @@ function G2BuyIn() {
     className: "g2-row"
   }, /*#__PURE__*/React.createElement("span", null, "Profit allocated to you on a K-1"), /*#__PURE__*/React.createElement("b", null, K(m.k1))), /*#__PURE__*/React.createElement("div", {
     className: "g2-row"
-  }, /*#__PURE__*/React.createElement("span", null, "Cash actually distributed to you"), /*#__PURE__*/React.createElement("b", null, K(m.distributions))), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("span", null, "Cash distributed to you"), /*#__PURE__*/React.createElement("b", null, K(m.distributions))), /*#__PURE__*/React.createElement("div", {
     className: "g2-row"
-  }, /*#__PURE__*/React.createElement("span", null, "Tax you owe on the allocation"), /*#__PURE__*/React.createElement("b", {
+  }, /*#__PURE__*/React.createElement("span", null, "Tax owed on the allocation"), /*#__PURE__*/React.createElement("b", {
     style: {
       color: "var(--drag)"
     }
@@ -475,16 +475,16 @@ function G2BuyIn() {
     }
   }, K(m.afterBuyIn))), m.phantomGap > 0 && /*#__PURE__*/React.createElement("div", {
     className: "g2-call g2-warn"
-  }, /*#__PURE__*/React.createElement("b", null, "You would owe tax on money you never receive"), "The firm allocates you ", K(m.k1), " of profit but only distributes ", K(m.distributions), " of it in cash. You still owe roughly ", K(m.taxOwed), " in tax on the full allocation, so you are ", K(m.phantomGap), " short before a single loan payment is made. This is one of the most common ways a buy-in turns into a personal crisis, and the fix is simple: a mandatory tax distribution written into the operating agreement. It is easier to negotiate before you accept the offer than after."), m.afterBuyIn < 0 && /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("b", null, "You would owe tax on profit you do not receive as cash"), "In this scenario the firm allocates you ", K(m.k1), " of profit but distributes only ", K(m.distributions), " of it in cash. You still owe roughly ", K(m.taxOwed), " in tax on the full allocation, so you are ", K(m.phantomGap), " short before any loan payment. A mandatory tax distribution written into the operating agreement is a common way to address this, and it is easier to negotiate before you accept the offer than after."), m.afterBuyIn < 0 && /*#__PURE__*/React.createElement("div", {
     className: "g2-call g2-warn"
-  }, /*#__PURE__*/React.createElement("b", null, "This does not clear on your current income"), "You would be ", K(Math.abs(m.afterBuyIn)), " short each year. That is not a reason to walk away, but it is a reason to change the shape of the deal rather than the size of your ambitions. Four levers exist: a smaller first tranche with the right to buy more later, a longer term, seller financing below bank rates, or a profits interest that costs nothing today and converts later."))), tab === "lev" && /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("b", null, "Free cash would be negative on your current income"), "You would be ", K(Math.abs(m.afterBuyIn)), " short each year. That does not mean the deal cannot work, but the structure may need to change. Four options to examine: a smaller first tranche with the right to buy more later, a longer term, seller financing below bank rates or a profits interest that requires no cash up front and converts later."))), tab === "lev" && /*#__PURE__*/React.createElement("div", {
     className: "g2-2"
   }, /*#__PURE__*/React.createElement("div", {
     className: "g2-p"
-  }, /*#__PURE__*/React.createElement("h2", null, "What you are worth to them"), /*#__PURE__*/React.createElement("p", {
+  }, /*#__PURE__*/React.createElement("h2", null, "What your staying is worth to the firm"), /*#__PURE__*/React.createElement("p", {
     className: "g2-note"
-  }, "This number is rarely stated out loud, but it is central to your negotiating position. A buyer prices a firm partly on whether clients stay after the founder leaves. If you are a reason clients would stay, that is worth knowing."), /*#__PURE__*/React.createElement(Rng, {
-    label: "Share of the top households who would take your call without the founder",
+  }, "A buyer prices a firm partly on whether clients stay after the founder leaves. If clients would stay because of you, that figure bears on your negotiating position, and it matters to the founder as well."), /*#__PURE__*/React.createElement(Rng, {
+    label: "Share of the top households that would take your call without the founder",
     unit: "pct",
     v: clientsHeld,
     set: setClientsHeld,
@@ -498,31 +498,31 @@ function G2BuyIn() {
     className: "g2-row"
   }, /*#__PURE__*/React.createElement("span", null, "Firm value if you left tomorrow"), /*#__PURE__*/React.createElement("b", null, K(leverage.withoutYou))), /*#__PURE__*/React.createElement("div", {
     className: "g2-row g2-tot"
-  }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("b", null, "What your presence is worth to the founder")), /*#__PURE__*/React.createElement("b", {
+  }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("b", null, "What your staying is worth to the firm")), /*#__PURE__*/React.createElement("b", {
     style: {
       color: "var(--gain)"
     }
   }, K(leverage.delta))), /*#__PURE__*/React.createElement("div", {
     className: "g2-call"
-  }, /*#__PURE__*/React.createElement("b", null, "How to raise this well"), "It helps to treat this as a shared problem rather than a threat: the firm is worth ", K(leverage.delta), " more once clients know you, and neither of you gets there without a written agreement and sustained joint meetings over time. You are asking the firm to let you build the relationships that create that value for both of you.")), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("b", null, "How to raise this"), "It helps to treat this as a shared interest rather than leverage: the firm is worth ", K(leverage.delta), " more once clients know you, and neither side gets there without a written agreement and sustained joint client meetings over time. Put that way, you are asking the firm to let you build the relationships that create value for both of you.")), /*#__PURE__*/React.createElement("div", {
     className: "g2-p"
   }, /*#__PURE__*/React.createElement("h2", null, "Questions to ask, and when"), /*#__PURE__*/React.createElement("div", {
     className: "g2-q"
-  }, /*#__PURE__*/React.createElement("p", null, "What is the firm worth, who decided that, and when was it last looked at?"), /*#__PURE__*/React.createElement("em", null, "A founder who cannot answer has not started. That is useful, not discouraging. It means the price has not been set against you yet.")), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("p", null, "What is the firm worth, who decided that, and when was it last looked at?"), /*#__PURE__*/React.createElement("em", null, "If there is no current answer, that is useful to know: the price has not been fixed, so there is room to agree on a method.")), /*#__PURE__*/React.createElement("div", {
     className: "g2-q"
-  }, /*#__PURE__*/React.createElement("p", null, "Is what you are offering me equity, a profits interest, phantom, or a revenue share?"), /*#__PURE__*/React.createElement("em", null, "Ask it in exactly those four words. The pause before the answer tells you as much as the answer.")), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("p", null, "Is what you are offering me equity, a profits interest, phantom equity or a revenue share?"), /*#__PURE__*/React.createElement("em", null, "Using these four terms makes the answer specific and easy to write down.")), /*#__PURE__*/React.createElement("div", {
     className: "g2-q"
-  }, /*#__PURE__*/React.createElement("p", null, "If someone offered to buy this firm next year, what happens to me?"), /*#__PURE__*/React.createElement("em", null, "You are asking about tag-along rights without using the term. Listen for whether they have thought about you in that scenario at all.")), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("p", null, "If someone offered to buy this firm next year, what happens to me?"), /*#__PURE__*/React.createElement("em", null, "This asks about tag-along rights without using the term. Listen for whether the plan already covers your position in that scenario.")), /*#__PURE__*/React.createElement("div", {
     className: "g2-q"
-  }, /*#__PURE__*/React.createElement("p", null, "Which clients would you like me to start co-leading, and starting when?"), /*#__PURE__*/React.createElement("em", null, "The most important question here. It converts an abstract promise into a calendar, and a founder who will not name households is not ready to hand anything over.")), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("p", null, "Which clients would you like me to start co-leading, and starting when?"), /*#__PURE__*/React.createElement("em", null, "Naming households and dates turns an intention into a schedule. If the answer is still general, that shows where planning needs to start.")), /*#__PURE__*/React.createElement("div", {
     className: "g2-q"
-  }, /*#__PURE__*/React.createElement("p", null, "What would have to be true for you to feel comfortable retiring?"), /*#__PURE__*/React.createElement("em", null, "Few people ask the founder this, and many founders have never said it out loud. It is also the question that makes you a partner in the conversation rather than a supplicant in it.")))), tab === "ten" && /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("p", null, "What would have to be true for you to feel comfortable stepping back?"), /*#__PURE__*/React.createElement("em", null, "This invites the founder to describe their own conditions, which makes the conversation a joint one.")))), tab === "ten" && /*#__PURE__*/React.createElement("div", {
     className: "g2-2"
   }, /*#__PURE__*/React.createElement("div", {
     className: "g2-p"
   }, /*#__PURE__*/React.createElement("h2", null, "Buying in against staying an employee"), /*#__PURE__*/React.createElement("p", {
     className: "g2-note"
-  }, "The honest comparison. In one path you buy the stake. In the other you stay salaried and invest exactly what the buy-in would have cost you. Ten years either way."), /*#__PURE__*/React.createElement(Rng, {
+  }, "A direct comparison over 10 years. In one path you buy the stake. In the other you stay salaried and invest the amount the buy-in would have cost."),/*#__PURE__*/React.createElement(Rng, {
     label: "Firm growth per year",
     unit: "pct",
     v: growth,
@@ -544,9 +544,9 @@ function G2BuyIn() {
     className: "g2-row"
   }, /*#__PURE__*/React.createElement("span", null, "Out of pocket each year if you buy in"), /*#__PURE__*/React.createElement("b", null, K(m.outOfPocket))), /*#__PURE__*/React.createElement("div", {
     className: "g2-row"
-  }, /*#__PURE__*/React.createElement("span", null, "Your stake, ten years from now"), /*#__PURE__*/React.createElement("b", null, K(tenYear.equityValue))), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("span", null, "Your stake, 10 years from now"), /*#__PURE__*/React.createElement("b", null, K(tenYear.equityValue))), /*#__PURE__*/React.createElement("div", {
     className: "g2-row"
-  }, /*#__PURE__*/React.createElement("span", null, "Still owed on the note at year ten"), /*#__PURE__*/React.createElement("b", null, tenYear.balance > 0 ? "\u2212" + K(tenYear.balance) : "paid off")), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("span", null, "Still owed on the note at year 10"), /*#__PURE__*/React.createElement("b", null, tenYear.balance > 0 ? "\u2212" + K(tenYear.balance) : "paid off")), /*#__PURE__*/React.createElement("div", {
     className: "g2-row g2-tot"
   }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("b", null, "Buying in")), /*#__PURE__*/React.createElement("b", null, K(tenYear.pathB))), /*#__PURE__*/React.createElement("div", {
     className: "g2-row g2-tot"
@@ -560,24 +560,24 @@ function G2BuyIn() {
     className: "g2-p"
   }, /*#__PURE__*/React.createElement("h2", null, "What the arithmetic leaves out"), /*#__PURE__*/React.createElement("div", {
     className: "g2-q"
-  }, /*#__PURE__*/React.createElement("p", null, "Your stake is one undiversified position in a small private company where you also work."), /*#__PURE__*/React.createElement("em", null, "Your job, your savings and your largest asset all depend on the same handful of clients. A public-market comparison at the same return is not the same risk, and this model does not charge you for that.")), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("p", null, "Your stake is one undiversified position in a small private company where you also work."), /*#__PURE__*/React.createElement("em", null, "Your job, your savings and your largest asset can all depend on the same group of clients. A public-market investment at the same return carries a different risk, and this model does not adjust for that.")), /*#__PURE__*/React.createElement("div", {
     className: "g2-q"
-  }, /*#__PURE__*/React.createElement("p", null, "Growth is not a given and it is partly yours to create."), /*#__PURE__*/React.createElement("em", null, "Run the comparison at zero growth as well. If buying in only wins at eight percent a year, you are being asked to pay today for growth you have not been given the tools to produce.")), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("p", null, "Growth is not guaranteed, and part of it depends on you."), /*#__PURE__*/React.createElement("em", null, "Run the comparison at zero growth as well. If buying in comes out ahead only at 8% growth a year, ask what would produce that growth and who is responsible for it.")), /*#__PURE__*/React.createElement("div", {
     className: "g2-q"
-  }, /*#__PURE__*/React.createElement("p", null, "Ownership changes what you are worth everywhere else."), /*#__PURE__*/React.createElement("em", null, "An advisor who has run a P&L, priced a service model and sat through a transaction is a different candidate than one who has not, whatever happens to this particular stake.")), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("p", null, "Ownership can change your options elsewhere."), /*#__PURE__*/React.createElement("em", null, "Experience running a P&L, pricing a service model and going through a transaction can be valuable to other employers and firms, whatever happens to this stake.")), /*#__PURE__*/React.createElement("div", {
     className: "g2-q"
-  }, /*#__PURE__*/React.createElement("p", null, "The alternative is not only staying salaried."), /*#__PURE__*/React.createElement("em", null, "It is also leaving for a platform that grants equity on day one, or building your own. Price those honestly before deciding this is the only door.")), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("p", null, "Staying salaried is not the only alternative."), /*#__PURE__*/React.createElement("em", null, "Other options include joining a platform that offers equity from the start, or building your own practice. Compare them on the same terms before deciding.")), /*#__PURE__*/React.createElement("div", {
     className: "g2-call"
-  }, /*#__PURE__*/React.createElement("b", null, "The thing worth remembering"), "A buy-in that is close on the numbers is often a yes, because the numbers are the smallest part of it. A buy-in that loses badly on the numbers is telling you the price is wrong, not that ownership is wrong. Those are very different conversations and only one of them is about you."))), tab === "paper" && /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("b", null, "How to read the comparison"), "A buy-in that is close on the numbers may be worth pursuing for reasons the numbers do not capture, such as control and career options. A buy-in that loses clearly on the numbers points to a price or structure to renegotiate, which is a different conversation from whether ownership is right for you."))), tab === "paper" && /*#__PURE__*/React.createElement("div", {
     className: "g2-p"
-  }, /*#__PURE__*/React.createElement("h2", null, "Ten things that have to be in the document"), /*#__PURE__*/React.createElement("p", {
+  }, /*#__PURE__*/React.createElement("h2", null, "10 items that should be in the document"), /*#__PURE__*/React.createElement("p", {
     className: "g2-note"
-  }, "A verbal promise of equity is common in this industry, and among the least enforceable arrangements. None of these are unreasonable asks, and the cheapest moment to ask for all of them is before you have said yes."), PAPER.map(([q, why], i) => /*#__PURE__*/React.createElement("div", {
+  }, "A verbal promise of equity is among the least enforceable arrangements. Each of these is a reasonable request, and it is usually simplest to make them before you agree to the offer."), PAPER.map(([q, why], i) => /*#__PURE__*/React.createElement("div", {
     className: "g2-q",
     key: i
   }, /*#__PURE__*/React.createElement("p", null, q), /*#__PURE__*/React.createElement("em", null, why))), /*#__PURE__*/React.createElement("div", {
     className: "g2-call"
-  }, /*#__PURE__*/React.createElement("b", null, "Consider your own counsel"), "The firm's counsel represents the firm, which in practice often means the founder. They may be easy to work with, but they are not your lawyer. Independent counsel is a common safeguard, and it often costs a few thousand dollars against a decision of this size.")), /*#__PURE__*/React.createElement("p", {
+  }, /*#__PURE__*/React.createElement("b", null, "Consider your own counsel"), "The firm's counsel represents the firm, not you, so independent advice on your terms is a common safeguard. As a rough estimate, the cost is a few thousand dollars, and fees vary.")), /*#__PURE__*/React.createElement("p", {
     className: "g2-foot"
   }, "A planning framework, not an appraisal, and not tax, legal or investment advice. Tax treatment of profits interests, phantom plans and purchase notes varies with structure, entity and jurisdiction, and small drafting differences change the outcome materially. Anyone acting on this needs their own counsel and their own tax advisor.")));
 }
