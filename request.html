@@ -4,9 +4,9 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="robots" content="noindex, nofollow" />
-<title>Request portal access — Carry Forward</title>
+<title>Request access — Carry Forward</title>
 <style>
-/* Self-contained on purpose: the rest of the site sits behind sign-in, so this page loads nothing from it. */
+/* Self-contained on purpose: this page loads no CSS or script from the rest of the site, so it renders the same whatever the site's access rules are. */
 :root{
   --navy:#0E263C; --navy-700:#1A3755; --gold:#AD8B5A; --gold-light:#D4B583; --gold-deep:#8A6B3E;
   --ground:#FFFFFF; --panel:#F8F7F4; --ink:#0E263C; --muted:#5B6A7A;
@@ -16,12 +16,17 @@
   --shadow:0 1px 2px rgba(14,38,60,.05);
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
 .w{max-width:1060px;margin:0 auto;padding:0 24px}
 h1,h2{font-family:var(--serif);font-weight:500;letter-spacing:-.012em;margin:0;color:var(--navy)}
 h1{font-size:clamp(30px,4.9vw,47px);line-height:1.1}
 p{margin:0 0 15px}
+a{color:var(--ink)}
+p a{text-decoration-color:var(--gold);text-underline-offset:3px}
+p a:hover{color:var(--gold-deep)}
 .muted{color:var(--muted)}
+.small{font-size:13px}
 
 header{border-bottom:1px solid var(--rule);background:rgba(255,255,255,.93)}
 .nav{display:flex;align-items:center;height:72px}
@@ -33,7 +38,8 @@ header{border-bottom:1px solid var(--rule);background:rgba(255,255,255,.93)}
 .hero p.lede{font-size:19px;color:var(--muted);max-width:56ch;margin-top:20px;margin-bottom:0}
 .eyebrow{font-size:11.5px;font-weight:600;letter-spacing:.17em;text-transform:uppercase;color:var(--gold-deep);margin-bottom:15px}
 section{padding:64px 0}
-.narrow{max-width:760px}
+/* same rule as assets/site.css: the column is capped at 760px but keeps the left edge of the page text */
+.w.narrow>*{max-width:760px}
 
 form{background:var(--panel);border:1px solid var(--rule);border-radius:4px;padding:28px;box-shadow:var(--shadow)}
 .fg{margin-bottom:15px}
@@ -41,6 +47,7 @@ label{display:block;font-size:13.5px;margin-bottom:6px}
 input,textarea{width:100%;font:inherit;font-size:15px;padding:11px 12px;border:1px solid var(--field);border-radius:2px;background:#fff;color:var(--ink)}
 input:focus,textarea:focus{outline:2px solid var(--navy);outline-offset:2px;border-color:var(--navy)}
 textarea{min-height:92px;resize:vertical}
+.hint{font-size:13px;color:var(--muted);margin:6px 0 0}
 @media(max-width:700px){input,textarea{font-size:16px}}
 .btn{display:inline-block;background:var(--navy);color:#fff;text-decoration:none;padding:12px 22px;border-radius:2px;
   font-size:14.5px;border:1px solid var(--navy);cursor:pointer;font-family:inherit;transition:background .18s,border-color .18s}
@@ -50,6 +57,9 @@ textarea{min-height:92px;resize:vertical}
 #sent{margin:14px 0 0}
 #sent:empty{margin:0}
 #sent:focus{outline:none}
+#sent.ok{margin:0;padding:20px 22px;background:#FAF7F1;border-left:3px solid var(--gold);border-radius:0 3px 3px 0;color:var(--ink);font-size:17px}
+#home{margin:16px 0 0}
+#approved{margin:20px 0 0}
 
 footer{background:var(--navy);color:#9FB0C1;padding:46px 0;font-size:13.5px}
 footer p{max-width:86ch;margin-bottom:12px}
@@ -68,8 +78,8 @@ footer p{max-width:86ch;margin-bottom:12px}
   <div class="hero">
     <div class="w">
       <div class="eyebrow">Advisor portal</div>
-      <h1>Request portal access</h1>
-      <p class="lede">The portal is for engagement clients, and access is issued by email after review.</p>
+      <h1>Request access</h1>
+      <p class="lede">Access is by invitation for engagement clients. Tell me who you are and I will review your request. If approved, I will email you, and you can then sign in with a one-time code sent to the email you enter here.</p>
     </div>
   </div>
 
@@ -79,13 +89,15 @@ footer p{max-width:86ch;margin-bottom:12px}
         <input type="hidden" name="source" value="portal-request" />
         <div class="hp" aria-hidden="true"><label>Leave this field empty<input type="text" name="company" tabindex="-1" autocomplete="off" /></label></div>
         <div class="fg"><label for="n">Name (required)</label><input id="n" name="name" autocomplete="name" required /></div>
-        <div class="fg"><label for="e">Email (required)</label><input id="e" name="email" type="email" autocomplete="email" required /></div>
+        <div class="fg"><label for="e">Email (required)</label><input id="e" name="email" type="email" autocomplete="email" required aria-describedby="e-hint" /><p class="hint" id="e-hint">Use the email address you will sign in with.</p></div>
         <div class="fg"><label for="p">Phone (required)</label><input id="p" name="phone" type="tel" autocomplete="tel" required /></div>
         <div class="fg"><label for="f">Firm (optional)</label><input id="f" name="firm" autocomplete="organization" /></div>
         <div class="fg"><label for="u">What would you like to use it for</label><textarea id="u" name="use"></textarea></div>
-        <button class="btn" type="submit">Request access</button>
-        <p id="sent" class="muted" role="status" tabindex="-1" data-ok="Thank you. I review each request and will email you if access is available."></p>
+        <button class="btn" type="submit">Send request</button>
       </form>
+      <p id="sent" class="muted" role="status" tabindex="-1" data-ok="Thank you. I will review your request and email you if access is approved."></p>
+      <p id="home" hidden><a href="index.html">Back to the home page</a></p>
+      <p id="approved" class="muted small">Already approved? <a href="signin.html">Sign in</a></p>
     </div>
   </section>
 </main>
@@ -112,6 +124,7 @@ footer p{max-width:86ch;margin-bottom:12px}
     e.preventDefault();
     if (sending) return;
     var btn = form.querySelector('button[type="submit"]');
+    var btnLabel = btn.textContent;
     var s = document.getElementById('sent');
     var okText = s.getAttribute('data-ok') || '';
     var fail = function (text) { s.textContent = text; s.focus(); };
@@ -148,6 +161,11 @@ footer p{max-width:86ch;margin-bottom:12px}
         // Formspree also reports a problem in the reply itself, so check that as well
         if (body && (body.ok === false || body.error)) throw new Error('send failed');
         form.reset();
+        // the confirmation replaces the form, with a way back to the home page
+        form.hidden = true;
+        document.getElementById('approved').hidden = true;
+        document.getElementById('home').hidden = false;
+        s.className = 'ok';
         s.textContent = okText;
       })
       .catch(function () {
@@ -156,7 +174,7 @@ footer p{max-width:86ch;margin-bottom:12px}
       .finally(function () {
         sending = false;
         btn.removeAttribute('aria-disabled');
-        btn.textContent = 'Request access';
+        btn.textContent = btnLabel;
         s.focus();
       });
   });

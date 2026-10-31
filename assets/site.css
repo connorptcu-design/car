@@ -85,10 +85,14 @@ section.last{border-bottom:none}
 .centered{max-width:560px;margin:0 auto;text-align:center}
 .centered .lede{margin-left:auto;margin-right:auto}
 .centered .cta{justify-content:center}
-.hero.signin{min-height:62vh;display:flex;align-items:center;padding:72px 0}
+.hero.signin{min-height:62vh;display:flex;align-items:center;padding:64px 0}
 .hero.signin>.w{width:100%}
 .signin-mark{display:block;width:72px;height:72px;margin:0 auto 18px}
-.signin-note{margin-top:22px}
+/* sign-in paths: two cards in a narrower centered grid; Sign in is the filled button, Request access the outline one */
+.paths{max-width:780px;margin:38px auto 0}
+.paths .btn.ghost{border-color:var(--navy)}
+.paths .btn.ghost:hover{border-color:var(--gold)}
+.paths-help{margin-top:24px;margin-bottom:0}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:38px;align-items:start}
 @media(max-width:860px){.two{grid-template-columns:1fr;gap:26px}}
 
