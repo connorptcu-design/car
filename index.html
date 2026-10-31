@@ -11,21 +11,28 @@
 </head>
 <body>
 
+<a class="skip" href="#content">Skip to content</a>
+
 <header>
   <div class="w nav">
     <a class="mark" href="index.html"><img src="assets/cf-mark-sm.png" alt="" /><span class="wm">Carry<i>&nbsp;Forward</i></span></a>
-    <button class="burger" id="burger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    <button class="burger" id="burger" aria-label="Menu" aria-controls="links" aria-expanded="false"><span></span><span></span><span></span></button>
+    <nav aria-label="Main">
     <ul class="links" id="links">
       <li><a href="founders.html">For founders</a></li>
       <li><a href="successors.html">For successors</a></li>
       <li><a href="tools.html">The tools</a></li>
-      <li><a href="portal.html">Portal</a></li>
+      <li><a href="signin.html">Portal</a></li>
       <li><a href="how-we-work.html">How we work</a></li>
       <li><a href="about.html">About</a></li>
+      <li class="menu-cta"><a href="https://scheduler.zoom.us/connor-polan-6bxqga/30-mins-with-carry-forward-partners" target="_blank" rel="noopener">Book a call<span class="sr-only"> (opens in a new tab)</span></a></li>
     </ul>
-    <div class="navtools"><a class="btn" href="https://scheduler.zoom.us/connor-polan-6bxqga/30-mins-with-carry-forward-partners" target="_blank" rel="noopener">Book a call</a></div>
+    </nav>
+    <div class="navtools"><a class="btn" href="https://scheduler.zoom.us/connor-polan-6bxqga/30-mins-with-carry-forward-partners" target="_blank" rel="noopener">Book a call<span class="sr-only"> (opens in a new tab)</span></a></div>
   </div>
 </header>
+
+<main id="content" tabindex="-1">
 
 <div class="hero">
   <div class="w">
@@ -128,33 +135,28 @@
       <div class="calc-grid">
         <div>
           <div class="f">
-            <label for="rev"><span>Revenue, last 12 months</span>
-              <span class="numbox"><span class="numbox-aff" aria-hidden="true">$</span><input type="text" inputmode="decimal" id="revBox" class="numbox-input" aria-label="Revenue, last 12 months" value="1,500,000" /></span>
-            </label>
+            <div class="lab"><label for="rev">Revenue, last 12 months</label>
+              <span class="numbox"><span class="numbox-aff" aria-hidden="true">$</span><input type="text" inputmode="decimal" id="revBox" class="numbox-input" aria-label="Revenue, last 12 months, exact value" value="1,500,000" /></span></div>
             <input type="range" id="rev" min="0" max="1000" step="1" value="396" />
           </div>
           <div class="f">
-            <label for="margin"><span>Owner-adjusted profit margin</span>
-              <span class="numbox"><input type="text" inputmode="decimal" id="marginBox" class="numbox-input" aria-label="Owner-adjusted profit margin" value="30" /><span class="numbox-aff" aria-hidden="true">%</span></span>
-            </label>
+            <div class="lab"><label for="margin">Owner-adjusted profit margin</label>
+              <span class="numbox"><input type="text" inputmode="decimal" id="marginBox" class="numbox-input" aria-label="Owner-adjusted profit margin, exact value" value="30" /><span class="numbox-aff" aria-hidden="true">%</span></span></div>
             <input type="range" id="margin" min="0" max="100" step="1" value="30" />
           </div>
           <div class="f">
-            <label for="fee"><span>Share of revenue that recurs each year</span>
-              <span class="numbox"><input type="text" inputmode="decimal" id="feeBox" class="numbox-input" aria-label="Share of revenue that recurs each year" value="72" /><span class="numbox-aff" aria-hidden="true">%</span></span>
-            </label>
+            <div class="lab"><label for="fee">Share of revenue that recurs each year</label>
+              <span class="numbox"><input type="text" inputmode="decimal" id="feeBox" class="numbox-input" aria-label="Share of revenue that recurs each year, exact value" value="72" /><span class="numbox-aff" aria-hidden="true">%</span></span></div>
             <input type="range" id="fee" min="0" max="100" step="1" value="72" />
           </div>
           <div class="f">
-            <label for="age"><span>Average client age</span>
-              <span class="numbox"><input type="text" inputmode="decimal" id="ageBox" class="numbox-input" aria-label="Average client age" value="66" /></span>
-            </label>
+            <div class="lab"><label for="age">Average client age</label>
+              <span class="numbox"><input type="text" inputmode="decimal" id="ageBox" class="numbox-input" aria-label="Average client age, exact value" value="66" /></span></div>
             <input type="range" id="age" min="40" max="82" step="1" value="66" />
           </div>
           <div class="f">
-            <label for="grow"><span>Organic growth, three-year average</span>
-              <span class="numbox"><input type="text" inputmode="decimal" id="growBox" class="numbox-input" aria-label="Organic growth, three-year average" value="4" /><span class="numbox-aff" aria-hidden="true">%</span></span>
-            </label>
+            <div class="lab"><label for="grow">Organic growth, three-year average</label>
+              <span class="numbox"><input type="text" inputmode="decimal" id="growBox" class="numbox-input" aria-label="Organic growth, three-year average, exact value" value="4" /><span class="numbox-aff" aria-hidden="true">%</span></span></div>
             <input type="range" id="grow" min="-6" max="20" step="1" value="4" />
           </div>
           <div class="f">
@@ -177,6 +179,7 @@
         </div>
 
         <div>
+          <p class="sr-only" id="estStatus" role="status" aria-live="polite"></p>
           <div class="result">
             <div class="muted small">Estimated enterprise value</div>
             <div class="big" id="range">—</div>
@@ -208,15 +211,15 @@
     <p class="muted">
       Send a question or inquiry about the tools or this website, and we will reply within one
       business day. If you would rather talk it through, you can
-      <a href="https://scheduler.zoom.us/connor-polan-6bxqga/30-mins-with-carry-forward-partners" target="_blank" rel="noopener">book a 30-minute call</a>
+      <a href="https://scheduler.zoom.us/connor-polan-6bxqga/30-mins-with-carry-forward-partners" target="_blank" rel="noopener">book a 30-minute call<span class="sr-only"> (opens in a new tab)</span></a>
       at no charge, with no pitch.
     </p>
     <form class="book" action="https://formsubmit.co/connorptcu@outlook.com" method="POST">
       <input type="hidden" name="_subject" value="New inquiry — Carry Forward" />
       <input type="hidden" name="_template" value="table" />
       <input type="hidden" name="_captcha" value="false" />
-      <div class="fg"><label for="n">Name</label><input id="n" name="name" required /></div>
-      <div class="fg"><label for="e">Email</label><input id="e" name="email" type="email" required /></div>
+      <div class="fg"><label for="n">Name (required)</label><input id="n" name="name" autocomplete="name" required /></div>
+      <div class="fg"><label for="e">Email (required)</label><input id="e" name="email" type="email" autocomplete="email" required /></div>
       <div class="fg">
         <label for="r">Which best describes you</label>
         <select id="r" name="role">
@@ -228,10 +231,12 @@
       </div>
       <div class="fg"><label for="m">Your question or message</label><textarea id="m" name="message"></textarea></div>
       <button class="btn" type="submit">Send an Inquiry</button>
-      <p id="sent" class="muted" style="display:none;margin-top:14px">Thank you. We will reply within one business day.</p>
+      <p id="sent" class="muted" role="status" tabindex="-1" data-ok="Thank you. We will reply within one business day."></p>
     </form>
   </div>
 </section>
+
+</main>
 
 <footer>
   <div class="w">

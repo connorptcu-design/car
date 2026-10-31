@@ -22,7 +22,7 @@
   </a>
   <span style="opacity:.66;font-size:12.5px;letter-spacing:.05em">Carry Forward &middot; private workspace</span>
 </div>
-<div id="root"><div class="boot">Loading…</div></div>
+<main id="root"><div class="boot">Loading…</div></main>
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script>
@@ -344,9 +344,10 @@ function PracticeValue() {
         .pv-val { font-family: var(--serif); font-size: 16px; font-variant-numeric: tabular-nums; }
         .pv-box { display: inline-flex; align-items: baseline; gap: 4px; }
         .pv-aff { font-family: var(--serif); font-size: 13px; color: var(--muted); }
-        .pv-input { width: 110px; font-family: var(--serif); font-size: 16px; font-variant-numeric: tabular-nums; text-align: right; border: 1px solid var(--rule); border-radius: 2px; padding: 3px 8px; background: #fff; color: var(--ink); }
-        .pv-input:focus { outline: none; border-color: var(--ink); }
-        input[type=range] { width: 100%; accent-color: #2C6A4F; height: 20px; }
+        .pv-input { width: 110px; font-family: var(--serif); font-size: 16px; font-variant-numeric: tabular-nums; text-align: right; border: 1px solid #7F8C9A; border-radius: 2px; padding: 3px 8px; background: #fff; color: var(--ink); }
+        html { scroll-padding-top: 64px; }
+        .pv-input:focus { outline: 2px solid var(--ink); outline-offset: 2px; border-color: var(--ink); }
+        input[type=range] { width: 100%; accent-color: #2C6A4F; height: 28px; }
         .pv-seg { display: flex; flex-direction: column; gap: 5px; }
         .pv-opt {
           text-align: left;
@@ -360,7 +361,7 @@ function PracticeValue() {
           cursor: pointer;
         }
         .pv-opt[data-on="true"] { background: var(--ink); color: #F4F6F3; border-color: var(--ink); }
-        .pv-opt:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+        .pv-opt:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
         .pv-head { display: flex; flex-wrap: wrap; gap: 30px; align-items: flex-end; }
         .pv-range {
@@ -376,6 +377,7 @@ function PracticeValue() {
         .pv-ledger { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
         .pv-ledger td { padding: 9px 0; border-bottom: 1px solid var(--rule-soft); vertical-align: top; }
         .pv-ledger tr:last-child td { border-bottom: none; }
+        .pv-ledger td.pv-num { padding-left: 14px; }
         .pv-l1 { font-size: 14px; }
         .pv-l2 { color: var(--muted); font-size: 12.5px; }
         .pv-num { text-align: right; font-family: var(--serif); font-size: 15.5px; white-space: nowrap; padding-left: 14px; }
@@ -408,6 +410,7 @@ function PracticeValue() {
           border-radius: 2px; background: #FFF; color: var(--ink); resize: vertical;
         }
         .pv-foot { color: var(--muted); font-size: 12.5px; margin-top: 26px; max-width: 78ch; }
+        @media (max-width: 700px) { textarea.pv-out { font-size: 16px; } }
       `), /*#__PURE__*/React.createElement("div", {
     className: "pv-wrap"
   }, /*#__PURE__*/React.createElement("h1", {
@@ -432,6 +435,7 @@ function PracticeValue() {
     key: c.id,
     className: "pv-opt",
     "data-on": channel === c.id,
+    "aria-pressed": channel === c.id,
     onClick: () => setChannel(c.id)
   }, c.label)))), /*#__PURE__*/React.createElement(Slider, {
     label: "Assets under management",
@@ -508,6 +512,7 @@ function PracticeValue() {
     key: t.id,
     className: "pv-opt",
     "data-on": team === t.id,
+    "aria-pressed": team === t.id,
     onClick: () => setTeam(t.id)
   }, t.label)))), /*#__PURE__*/React.createElement(Slider, {
     label: "Owner-adjusted profit margin",
@@ -667,9 +672,11 @@ function PracticeValue() {
     className: "pv-ask"
   }, "If you were unable to work starting tomorrow, who would call your clients, and what would your family receive?", /*#__PURE__*/React.createElement("em", null, "An estimated two-thirds of advisors have no written continuity agreement. Without one, an estate may realize only a fraction of the ", short(model.value), " estimate."))),/*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("button", {
     className: "pv-btn",
+    "aria-expanded": showSummary,
     onClick: () => setShowSummary(s => !s)
   }, showSummary ? "Hide written summary" : "Show written summary"), showSummary && /*#__PURE__*/React.createElement("textarea", {
     className: "pv-out",
+    "aria-label": "Written summary of the estimate",
     readOnly: true,
     value: summary,
     onFocus: e => e.target.select()
@@ -772,10 +779,32 @@ function Slider({
     step: log ? 1 : step,
     value: log ? logPos(value, min, max) : value,
     onChange: e => set(log ? logVal(Number(e.target.value), min, max) : Number(e.target.value)),
-    "aria-label": label
+    "aria-label": label,
+    "aria-valuetext": (affixPre || "") + fmt(value * scale) + (affixPost || "")
   }));
 }
 ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(PracticeValue));
+</script>
+<div id="srStatus" role="status" aria-live="polite" style="position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap"></div>
+<script>
+// Reads the summary bar aloud, politely, a moment after it settles (never on first load).
+(function () {
+  var last = '', timer;
+  var out = document.getElementById('srStatus');
+  var mo = new MutationObserver(function () {
+    clearTimeout(timer);
+    timer = setTimeout(function () {
+      var el = document.querySelector('.pv-head');
+      if (!el) return;
+      var text = (el.innerText || el.textContent || '').replace(/\s+/g, ' ').trim();
+      if (text && text !== last) {
+        if (last) out.textContent = 'Summary: ' + text;
+        last = text;
+      }
+    }, 900);
+  });
+  mo.observe(document.getElementById('root'), { subtree: true, childList: true, characterData: true });
+})();
 </script>
 </body>
 </html>

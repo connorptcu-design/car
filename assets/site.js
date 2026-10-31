@@ -28,6 +28,21 @@
   function $(id) { return document.getElementById(id); }
   function set(id, text) { var e = $(id); if (e) e.textContent = text; }
 
+  // sliders report a readable value ("$1.5M") to assistive technology instead of the raw track position
+  function sliderText(slider, text) { if (slider) slider.setAttribute('aria-valuetext', text); }
+
+  // one polite summary line per calculator, written after the user pauses and never on page load
+  var interacted = false;
+  document.addEventListener('input', function () { interacted = true; }, true);
+  document.addEventListener('change', function () { interacted = true; }, true);
+  var announceTimers = {};
+  function announce(id, text) {
+    var e = $(id);
+    if (!e || !interacted) return;
+    clearTimeout(announceTimers[id]);
+    announceTimers[id] = setTimeout(function () { e.textContent = text; }, 700);
+  }
+
   function commas(n) {
     n = Math.round(n);
     var neg = n < 0;
@@ -122,15 +137,20 @@
   /* ---------- mobile nav ---------- */
   var burger = $('burger'), links = $('links');
   if (burger && links) {
-    burger.addEventListener('click', function () {
-      var open = links.classList.toggle('open');
+    var setMenu = function (open) {
+      links.classList.toggle('open', open);
       burger.setAttribute('aria-expanded', open ? 'true' : 'false');
-    });
+    };
+    burger.addEventListener('click', function () { setMenu(!links.classList.contains('open')); });
     links.addEventListener('click', function (e) {
-      if (e.target.tagName === 'A') {
-        links.classList.remove('open');
-        burger.setAttribute('aria-expanded', 'false');
-      }
+      if (e.target.closest && e.target.closest('a')) setMenu(false);
+    });
+    // Escape closes the menu and returns focus to its button; tabbing or clicking away closes it too
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && links.classList.contains('open')) { setMenu(false); burger.focus(); }
+    });
+    links.addEventListener('focusout', function (e) {
+      if (links.classList.contains('open') && e.relatedTarget !== burger && !links.contains(e.relatedTarget)) setMenu(false);
     });
   }
 
@@ -156,6 +176,12 @@
 
       // Priced on owner-adjusted profit, the way buyers actually price practices.
       // The revenue multiple is reported as an output, never used as an input.
+      sliderText(el.rev, money(rev));
+      sliderText(el.margin, Math.round(margin * 100) + '%');
+      sliderText(el.fee, fee + '% recurring');
+      sliderText(el.age, age + ' years');
+      sliderText(el.grow, grow + '% a year');
+
       var ebitda = rev * margin;
 
       // with no owner-adjusted profit there is nothing to price, so show that instead of a $0 range
@@ -168,6 +194,7 @@
           vb0.textContent = 'No owner-adjusted profit to price';
           vt0.textContent = 'This estimate prices owner-adjusted profit, so there is no value to show at a 0% margin. Raise the margin to see a range.';
         }
+        announce('estStatus', 'No owner-adjusted profit to price. Raise the margin to see a range.');
         return;
       }
       var base = ebitdaBase(ebitda);
@@ -186,11 +213,7 @@
       var prepared = ebitda * prepMult;
       var lonely = team < 0 ? 0.72 : team === 0 ? 0.55 : 0.30;
 
-      set('revOut', money(rev));
-      set('feeOut', fee + '%');
-      set('ageOut', age);
-      set('growOut', grow + '%');
-      set('range', money(val * 0.89) + ' to ' + money(val * 1.11));
+      set('range',money(val * 0.89) + ' to ' + money(val * 1.11));
       var mo = $('multOut'); if (mo) mo.innerHTML = revMult.toFixed(2) + '&times;';
       var eo = $('ebitdaOut'); if (eo) eo.innerHTML = mult.toFixed(1) + '&times;';
       set('ebitdaVal', money(ebitda));
@@ -220,6 +243,7 @@
         vb.textContent = 'No single input stands out as a weakness';
         vt.textContent = 'On these inputs, the open questions are more likely timing and structure than repair: which path you take, what it nets after tax, and whether an internal buyer could finance it. Those are the questions to work through next.';
       }
+      announce('estStatus', 'Estimated value ' + money(val * 0.89) + ' to ' + money(val * 1.11) + '. ' + vb.textContent + '.');
     }
 
     ids.forEach(function (i) {
@@ -270,16 +294,16 @@
       var gap = owed - dist;
       var swing = net - debt;
 
-      set('bProfitOut', money(profit));
-      set('bMultOut', mult.toFixed(1) + '\u00D7');
-      set('bStakeOut', stake + '%');
-      set('bDiscOut', disc + '%');
-      set('bPayoutOut', payout + '%');
-      set('bCompOut', money(comp));
-      set('bDownOut', money(down));
-      set('bYearsOut', years + ' yrs');
-      set('bRateOut', rate.toFixed(2) + '%');
-      set('bTaxOut', tax + '%');
+      sliderText(el.bProfit, money(profit));
+      sliderText(el.bMult, mult.toFixed(1) + '\u00D7');
+      sliderText(el.bStake, stake + '%');
+      sliderText(el.bDisc, disc + '%');
+      sliderText(el.bPayout, payout + '%');
+      sliderText(el.bComp, money(comp));
+      sliderText(el.bDown, money(down));
+      sliderText(el.bYears, years + ' years');
+      sliderText(el.bRate, rate.toFixed(2) + '%');
+      sliderText(el.bTax, tax + '%');
 
       set('bEv', money(ev));
       set('bPrice', money(price));
@@ -323,6 +347,10 @@
             money(takeHome) + '. Before relying on that, confirm that the payout ratio is a firm policy rather than the result of one strong year.';
         }
       }
+
+      announce('buyStatus', 'Purchase price ' + money(price) + '. Yearly effect on your cash ' +
+        (swing >= 0 ? 'plus ' : 'minus ') + money(Math.abs(swing)) + '.' +
+        (gap > 0 ? ' Warning: the tax owed on your share exceeds the cash distributed to you.' : ''));
     }
 
     ids.forEach(function (i) {
@@ -347,11 +375,17 @@
   /* ---------- contact form ---------- */
   var form = document.querySelector('form.book');
   if (form) {
+    var sending = false;
     form.addEventListener('submit', function (e) {
       e.preventDefault();
+      if (sending) return;
+      sending = true;
       var btn = form.querySelector('button[type="submit"]');
       var s = $('sent');
-      if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+      var okText = s ? s.getAttribute('data-ok') || '' : '';
+      // aria-disabled keeps focus on the button while the message is sending
+      if (btn) { btn.setAttribute('aria-disabled', 'true'); btn.textContent = 'Sending…'; }
+      if (s) s.textContent = '';
 
       fetch(form.action, {
         method: 'POST',
@@ -360,17 +394,16 @@
       })
         .then(function (res) {
           if (!res.ok) throw new Error('send failed');
-          if (s) s.style.display = 'block';
+          if (s) s.textContent = okText;
           form.reset();
         })
         .catch(function () {
-          if (s) {
-            s.textContent = 'Your message did not send. Please email connorptcu@outlook.com directly.';
-            s.style.display = 'block';
-          }
+          if (s) s.textContent = 'Your message did not send. Please email connorptcu@outlook.com directly.';
         })
         .finally(function () {
-          if (btn) { btn.disabled = false; btn.textContent = 'Send an Inquiry'; }
+          sending = false;
+          if (btn) { btn.removeAttribute('aria-disabled'); btn.textContent = 'Send an Inquiry'; }
+          if (s) s.focus();
         });
     });
   }

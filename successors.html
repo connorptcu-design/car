@@ -11,21 +11,28 @@
 </head>
 <body>
 
+<a class="skip" href="#content">Skip to content</a>
+
 <header>
   <div class="w nav">
     <a class="mark" href="index.html"><img src="assets/cf-mark-sm.png" alt="" /><span class="wm">Carry<i>&nbsp;Forward</i></span></a>
-    <button class="burger" id="burger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    <button class="burger" id="burger" aria-label="Menu" aria-controls="links" aria-expanded="false"><span></span><span></span><span></span></button>
+    <nav aria-label="Main">
     <ul class="links" id="links">
       <li><a href="founders.html">For founders</a></li>
       <li><a href="successors.html" aria-current="page">For successors</a></li>
       <li><a href="tools.html">The tools</a></li>
-      <li><a href="portal.html">Portal</a></li>
+      <li><a href="signin.html">Portal</a></li>
       <li><a href="how-we-work.html">How we work</a></li>
       <li><a href="about.html">About</a></li>
+      <li class="menu-cta"><a href="https://scheduler.zoom.us/connor-polan-6bxqga/30-mins-with-carry-forward-partners" target="_blank" rel="noopener">Book a call<span class="sr-only"> (opens in a new tab)</span></a></li>
     </ul>
-    <div class="navtools"><a class="btn" href="https://scheduler.zoom.us/connor-polan-6bxqga/30-mins-with-carry-forward-partners" target="_blank" rel="noopener">Book a call</a></div>
+    </nav>
+    <div class="navtools"><a class="btn" href="https://scheduler.zoom.us/connor-polan-6bxqga/30-mins-with-carry-forward-partners" target="_blank" rel="noopener">Book a call<span class="sr-only"> (opens in a new tab)</span></a></div>
   </div>
 </header>
+
+<main id="content" tabindex="-1">
 
 <div class="hero">
   <div class="w">
@@ -38,7 +45,7 @@
     </p>
     <div class="cta">
       <a class="btn" href="#buyin">Work out the buy-in</a>
-      <a class="btn ghost" href="https://scheduler.zoom.us/connor-polan-6bxqga/30-mins-with-carry-forward-partners" target="_blank" rel="noopener">Book a review</a>
+      <a class="btn ghost" href="https://scheduler.zoom.us/connor-polan-6bxqga/30-mins-with-carry-forward-partners" target="_blank" rel="noopener">Book a review<span class="sr-only"> (opens in a new tab)</span></a>
     </div>
   </div>
 </div>
@@ -89,68 +96,59 @@
       <div class="calc-grid">
         <div>
           <div class="f">
-            <label for="bProfit"><span>Owner-adjusted profit of the firm, after owners are paid market wages</span>
-              <span class="numbox"><span class="numbox-aff" aria-hidden="true">$</span><input type="text" inputmode="decimal" id="bProfitBox" class="numbox-input" aria-label="Owner-adjusted profit of the firm, after owners are paid market wages" value="1,800,000" /></span>
-            </label>
+            <div class="lab"><label for="bProfit">Owner-adjusted profit of the firm, after owners are paid market wages</label>
+              <span class="numbox"><span class="numbox-aff" aria-hidden="true">$</span><input type="text" inputmode="decimal" id="bProfitBox" class="numbox-input" aria-label="Owner-adjusted profit of the firm, after owners are paid market wages, exact value" value="1,800,000" /></span></div>
             <input type="range" id="bProfit" min="200" max="12000" step="25" value="1800" />
           </div>
           <div class="f">
-            <label for="bMult"><span>Multiple the firm could sell for</span>
-              <span class="numbox"><input type="text" inputmode="decimal" id="bMultBox" class="numbox-input" aria-label="Multiple the firm could sell for" value="7.5" /><span class="numbox-aff" aria-hidden="true">x</span></span>
-            </label>
+            <div class="lab"><label for="bMult">Multiple the firm could sell for</label>
+              <span class="numbox"><input type="text" inputmode="decimal" id="bMultBox" class="numbox-input" aria-label="Multiple the firm could sell for, exact value" value="7.5" /><span class="numbox-aff" aria-hidden="true">x</span></span></div>
             <input type="range" id="bMult" min="3" max="14" step="0.1" value="7.5" />
           </div>
           <div class="f">
-            <label for="bStake"><span>Share being offered to you</span>
-              <span class="numbox"><input type="text" inputmode="decimal" id="bStakeBox" class="numbox-input" aria-label="Share being offered to you" value="15" /><span class="numbox-aff" aria-hidden="true">%</span></span>
-            </label>
+            <div class="lab"><label for="bStake">Share being offered to you</label>
+              <span class="numbox"><input type="text" inputmode="decimal" id="bStakeBox" class="numbox-input" aria-label="Share being offered to you, exact value" value="15" /><span class="numbox-aff" aria-hidden="true">%</span></span></div>
             <input type="range" id="bStake" min="1" max="50" step="1" value="15" />
           </div>
           <div class="f">
-            <label for="bDisc"><span>Discount to market price for an internal buyer</span>
-              <span class="numbox"><input type="text" inputmode="decimal" id="bDiscBox" class="numbox-input" aria-label="Discount to market price for an internal buyer" value="15" /><span class="numbox-aff" aria-hidden="true">%</span></span>
-            </label>
+            <div class="lab"><label for="bDisc">Discount to market price for an internal buyer</label>
+              <span class="numbox"><input type="text" inputmode="decimal" id="bDiscBox" class="numbox-input" aria-label="Discount to market price for an internal buyer, exact value" value="15" /><span class="numbox-aff" aria-hidden="true">%</span></span></div>
             <input type="range" id="bDisc" min="0" max="45" step="1" value="15" />
           </div>
           <div class="f">
-            <label for="bPayout"><span>Share of profit the firm distributes</span>
-              <span class="numbox"><input type="text" inputmode="decimal" id="bPayoutBox" class="numbox-input" aria-label="Share of profit the firm distributes" value="60" /><span class="numbox-aff" aria-hidden="true">%</span></span>
-            </label>
+            <div class="lab"><label for="bPayout">Share of profit the firm distributes</label>
+              <span class="numbox"><input type="text" inputmode="decimal" id="bPayoutBox" class="numbox-input" aria-label="Share of profit the firm distributes, exact value" value="60" /><span class="numbox-aff" aria-hidden="true">%</span></span></div>
             <input type="range" id="bPayout" min="0" max="100" step="5" value="60" />
           </div>
           <div class="f">
-            <label for="bComp"><span>Your compensation today</span>
-              <span class="numbox"><span class="numbox-aff" aria-hidden="true">$</span><input type="text" inputmode="decimal" id="bCompBox" class="numbox-input" aria-label="Your compensation today" value="265,000" /></span>
-            </label>
+            <div class="lab"><label for="bComp">Your compensation today</label>
+              <span class="numbox"><span class="numbox-aff" aria-hidden="true">$</span><input type="text" inputmode="decimal" id="bCompBox" class="numbox-input" aria-label="Your compensation today, exact value" value="265,000" /></span></div>
             <input type="range" id="bComp" min="80" max="1200" step="5" value="265" />
           </div>
           <div class="f">
-            <label for="bDown"><span>Cash you can put down</span>
-              <span class="numbox"><span class="numbox-aff" aria-hidden="true">$</span><input type="text" inputmode="decimal" id="bDownBox" class="numbox-input" aria-label="Cash you can put down" value="60,000" /></span>
-            </label>
+            <div class="lab"><label for="bDown">Cash you can put down</label>
+              <span class="numbox"><span class="numbox-aff" aria-hidden="true">$</span><input type="text" inputmode="decimal" id="bDownBox" class="numbox-input" aria-label="Cash you can put down, exact value" value="60,000" /></span></div>
             <input type="range" id="bDown" min="0" max="800" step="5" value="60" />
           </div>
           <div class="f">
-            <label for="bYears"><span>Financing term</span>
-              <span class="numbox"><input type="text" inputmode="decimal" id="bYearsBox" class="numbox-input" aria-label="Financing term" value="10" /><span class="numbox-aff" aria-hidden="true">yrs</span></span>
-            </label>
+            <div class="lab"><label for="bYears">Financing term</label>
+              <span class="numbox"><input type="text" inputmode="decimal" id="bYearsBox" class="numbox-input" aria-label="Financing term, exact value" value="10" /><span class="numbox-aff" aria-hidden="true">yrs</span></span></div>
             <input type="range" id="bYears" min="3" max="15" step="1" value="10" />
           </div>
           <div class="f">
-            <label for="bRate"><span>Interest rate</span>
-              <span class="numbox"><input type="text" inputmode="decimal" id="bRateBox" class="numbox-input" aria-label="Interest rate" value="7.50" /><span class="numbox-aff" aria-hidden="true">%</span></span>
-            </label>
+            <div class="lab"><label for="bRate">Interest rate</label>
+              <span class="numbox"><input type="text" inputmode="decimal" id="bRateBox" class="numbox-input" aria-label="Interest rate, exact value" value="7.50" /><span class="numbox-aff" aria-hidden="true">%</span></span></div>
             <input type="range" id="bRate" min="4" max="13" step="0.25" value="7.5" />
           </div>
           <div class="f">
-            <label for="bTax"><span>Your effective tax rate</span>
-              <span class="numbox"><input type="text" inputmode="decimal" id="bTaxBox" class="numbox-input" aria-label="Your effective tax rate" value="35" /><span class="numbox-aff" aria-hidden="true">%</span></span>
-            </label>
+            <div class="lab"><label for="bTax">Your effective tax rate</label>
+              <span class="numbox"><input type="text" inputmode="decimal" id="bTaxBox" class="numbox-input" aria-label="Your effective tax rate, exact value" value="35" /><span class="numbox-aff" aria-hidden="true">%</span></span></div>
             <input type="range" id="bTax" min="15" max="50" step="1" value="35" />
           </div>
         </div>
 
         <div>
+          <p class="sr-only" id="buyStatus" role="status" aria-live="polite"></p>
           <div class="result">
             <div class="muted small">What you would pay for the stake</div>
             <div class="big" id="bPrice">—</div>
@@ -226,9 +224,11 @@
       bring the founder into the conversation, that decision and its timing are yours. After a
       first conversation we quote a fixed fee, which is agreed before any work begins.
     </p>
-    <p style="margin-top:22px"><a class="btn" href="https://scheduler.zoom.us/connor-polan-6bxqga/30-mins-with-carry-forward-partners" target="_blank" rel="noopener">Book a review</a></p>
+    <p style="margin-top:22px"><a class="btn" href="https://scheduler.zoom.us/connor-polan-6bxqga/30-mins-with-carry-forward-partners" target="_blank" rel="noopener">Book a review<span class="sr-only"> (opens in a new tab)</span></a></p>
   </div>
 </section>
+
+</main>
 
 <footer>
   <div class="w">

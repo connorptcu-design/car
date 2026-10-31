@@ -22,7 +22,7 @@
   </a>
   <span style="opacity:.66;font-size:12.5px;letter-spacing:.05em">Carry Forward &middot; private workspace</span>
 </div>
-<div id="root"><div class="boot">Loading…</div></div>
+<main id="root"><div class="boot">Loading…</div></main>
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script>
@@ -605,6 +605,7 @@ function TransitionProgram() {
   }, /*#__PURE__*/React.createElement("b", null, "Running the business is using up client capacity"), capLeaderWarnBody), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "tp-toggle",
+    "aria-expanded": capWorkOpen,
     onClick: () => setCapWorkOpen(o => !o)
   }, capWorkOpen ? "Hide the working" : "Show the working"), capWorkOpen && /*#__PURE__*/React.createElement("div", {
     className: "tp-work"
@@ -622,6 +623,7 @@ function TransitionProgram() {
           background:var(--ground); color:var(--ink); font-family:var(--sans);
           font-size:15px; line-height:1.5; padding:26px 18px 60px; min-height:100%;
         }
+        html{scroll-padding-top:64px}
         .tp-w{max-width:1060px;margin:0 auto}
         .tp h1{font-family:var(--serif);font-size:32px;line-height:1.12;font-weight:500;margin:0 0 8px;letter-spacing:-.01em}
         .tp-lede{color:var(--muted);max-width:62ch;margin:0 0 22px}
@@ -636,16 +638,16 @@ function TransitionProgram() {
         .tp-p{background:var(--panel);border:1px solid var(--rule);border-radius:3px;padding:20px;margin-bottom:16px}
         .tp-p h2{font-family:var(--serif);font-size:20px;font-weight:500;margin:0 0 4px}
         .tp-note{color:var(--muted);font-size:13px;margin:0 0 16px;max-width:70ch}
-        .tp-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-        @media(max-width:820px){.tp-2{grid-template-columns:1fr}}
+        .tp-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+        @media(max-width:820px){.tp-2{grid-template-columns:minmax(0,1fr)}}
         .tp-f{margin-bottom:15px}
         .tp-lab{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:4px;font-size:13.5px}
         .tp-lab b{font-family:var(--serif);font-size:16px;font-weight:500;font-variant-numeric:tabular-nums}
         .tp-box{display:inline-flex;align-items:baseline;gap:4px}
         .tp-aff{font-family:var(--serif);font-size:13px;color:var(--muted)}
-        .tp-input{width:110px;font-family:var(--serif);font-size:16px;font-variant-numeric:tabular-nums;text-align:right;border:1px solid var(--rule);border-radius:2px;padding:3px 8px;background:#fff;color:var(--ink)}
-        .tp-input:focus{outline:none;border-color:var(--ink)}
-        input[type=range]{width:100%;accent-color:#2C6A4F;height:20px}
+        .tp-input{width:110px;font-family:var(--serif);font-size:16px;font-variant-numeric:tabular-nums;text-align:right;border:1px solid #7F8C9A;border-radius:2px;padding:3px 8px;background:#fff;color:var(--ink)}
+        .tp-input:focus{outline:2px solid var(--ink);outline-offset:2px;border-color:var(--ink)}
+        input[type=range]{width:100%;accent-color:#2C6A4F;height:28px}
         .tp-opt{display:block;width:100%;text-align:left;font:inherit;font-size:13.5px;padding:9px 12px;margin-bottom:5px;border:1px solid var(--rule);border-radius:2px;background:transparent;color:var(--ink);cursor:pointer}
         .tp-opt[data-on="true"]{background:var(--ink);color:#F2F5F1;border-color:var(--ink)}
         .tp-chk{display:flex;align-items:flex-start;gap:9px;font-size:13.5px;padding:7px 0;cursor:pointer}
@@ -653,6 +655,9 @@ function TransitionProgram() {
         .tp-row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--soft);font-size:14px}
         .tp-row:last-child{border-bottom:none}
         .tp-row b{font-family:var(--serif);font-size:16px;font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}
+        .tp-row span{min-width:0}
+        .tp-row span b,.tp-row>b{white-space:normal}
+        .tp-row>b{text-align:right}
         .tp-tot{border-top:1.5px solid var(--ink);margin-top:6px;padding-top:11px}
         .tp-call{border-left:3px solid var(--brass);background:#F6F2E9;padding:14px 16px;border-radius:2px;margin-top:14px;font-size:13.5px}
         .tp-call b{font-family:var(--serif);font-size:17px;font-weight:500;display:block;margin-bottom:5px}
@@ -667,15 +672,15 @@ function TransitionProgram() {
         .tp-sc:last-child{border-bottom:none}
         .tp-sc .l{font-size:14px}
         .tp-sc .h{color:var(--muted);font-size:12.5px;margin-top:2px;max-width:46ch}
-        .tp-dots{display:flex;gap:4px}
-        .tp-dot{width:24px;height:24px;border:1px solid var(--rule);border-radius:2px;background:transparent;cursor:pointer;font:inherit;font-size:12px;color:var(--muted)}
+        .tp-dots{display:flex;gap:6px}
+        .tp-dot{width:28px;height:28px;border:1px solid var(--rule);border-radius:2px;background:transparent;cursor:pointer;font:inherit;font-size:12px;color:var(--muted)}
         .tp-dot[data-on="true"]{background:var(--ink);border-color:var(--ink);color:#F2F5F1}
         .tp-q{padding:13px 0;border-bottom:1px solid var(--soft)}
         .tp-q:last-child{border-bottom:none}
         .tp-q p{margin:0;font-size:14.5px}
         .tp-q em{display:block;font-style:normal;color:var(--muted);font-size:13px;margin-top:5px}
         .tp-ph{font-family:var(--serif);font-size:19px;margin:0 0 2px;font-weight:500}
-        .tp-when{color:var(--brass);font-size:12.5px;margin:0 0 10px}
+        .tp-when{color:#866536;font-size:12.5px;margin:0 0 10px}
         .tp-gap{padding:11px 0;border-bottom:1px solid var(--soft);font-size:14px}
         .tp-gap:last-child{border-bottom:none}
         .tp-gap span{color:var(--muted);font-size:12.5px;display:block;margin-top:3px}
@@ -693,6 +698,7 @@ function TransitionProgram() {
     key: id,
     className: "tp-tab",
     "data-on": tab === id,
+    "aria-pressed": tab === id,
     onClick: () => setTab(id)
   }, label))), tab === "team" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     className: "tp-p"
@@ -702,6 +708,7 @@ function TransitionProgram() {
     key: m.id,
     className: "tp-opt",
     "data-on": fmodel === m.id,
+    "aria-pressed": fmodel === m.id,
     onClick: () => setFmodel(m.id)
   }, /*#__PURE__*/React.createElement("span", {
     style: {
@@ -1102,6 +1109,7 @@ function TransitionProgram() {
     key: b.id,
     className: "tp-opt",
     "data-on": buyer === b.id,
+    "aria-pressed": buyer === b.id,
     onClick: () => setBuyer(b.id)
   }, /*#__PURE__*/React.createElement("span", {
     style: {
@@ -1123,6 +1131,7 @@ function TransitionProgram() {
     key: e.id,
     className: "tp-opt",
     "data-on": entity === e.id,
+    "aria-pressed": entity === e.id,
     onClick: () => setEntity(e.id)
   }, e.name)), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -1289,6 +1298,7 @@ function TransitionProgram() {
     key: n,
     className: "tp-dot",
     "data-on": scores[r.id] >= n,
+    "aria-pressed": scores[r.id] === n,
     onClick: () => setScore(r.id, n),
     "aria-label": r.label + " " + n
   }, n)))))), /*#__PURE__*/React.createElement("div", {
@@ -1560,7 +1570,8 @@ function Rng({
     step: log ? 1 : step,
     value: log ? logPos(v, min, max) : v,
     onChange: e => set(log ? logVal(Number(e.target.value), min, max) : Number(e.target.value)),
-    "aria-label": label
+    "aria-label": label,
+    "aria-valuetext": (affixPre || "") + fmt(v * scale) + (affixPost || "")
   }));
 }
 function Bench({
@@ -1603,6 +1614,27 @@ function Bench({
   }, "Benchmark ", band, ". ", say));
 }
 ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(TransitionProgram));
+</script>
+<div id="srStatus" role="status" aria-live="polite" style="position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap"></div>
+<script>
+// Reads the summary bar aloud, politely, a moment after it settles (never on first load).
+(function () {
+  var last = '', timer;
+  var out = document.getElementById('srStatus');
+  var mo = new MutationObserver(function () {
+    clearTimeout(timer);
+    timer = setTimeout(function () {
+      var el = document.querySelector('.tp-bar');
+      if (!el) return;
+      var text = (el.innerText || el.textContent || '').replace(/\s+/g, ' ').trim();
+      if (text && text !== last) {
+        if (last) out.textContent = 'Summary: ' + text;
+        last = text;
+      }
+    }, 900);
+  });
+  mo.observe(document.getElementById('root'), { subtree: true, childList: true, characterData: true });
+})();
 </script>
 </body>
 </html>
