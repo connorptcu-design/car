@@ -27,6 +27,93 @@
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script>
 var useState = React.useState, useMemo = React.useMemo, useEffect = React.useEffect;
+
+// ---- Save and load a scenario: a plain JSON file kept on the user's own computer ----
+const SCENARIO_VERSION = 1;
+const scenarioDate = () => {
+  const d = new Date();
+  const p = n => String(n).padStart(2, "0");
+  return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+};
+function saveScenarioFile(tool, inputs) {
+  const doc = { tool: tool, version: SCENARIO_VERSION, savedAt: new Date().toISOString(), inputs: inputs };
+  const url = URL.createObjectURL(new Blob([JSON.stringify(doc, null, 2)], { type: "application/json" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "carry-forward-" + tool + "-" + scenarioDate() + ".json";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function pickScenarioFile(onText, onError) {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "application/json,.json";
+  input.onchange = () => {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    if (file.size > 200000) {
+      onError("That file is too large to be a saved scenario.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => onText(String(reader.result));
+    reader.onerror = () => onError("That file could not be read.");
+    reader.readAsText(file);
+  };
+  input.click();
+}
+// Only keys the tool itself defines are read, so anything else in the file is ignored. Every value
+// must fit what the tool's own controls allow; a range can depend on other inputs (for example revenue),
+// so each value is checked against the figures as they would stand once the file is applied.
+function checkScenario(doc, tool, fields, current) {
+  if (!doc || typeof doc !== "object" || Array.isArray(doc)) return { error: "That file is not a saved scenario." };
+  if (doc.tool !== tool) return { error: "That file was saved from a different tool." };
+  if (doc.version !== SCENARIO_VERSION) return { error: "That file was saved by a different version of this tool." };
+  const src = doc.inputs;
+  if (!src || typeof src !== "object" || Array.isArray(src)) return { error: "That file has no saved figures." };
+  const next = {};
+  fields.forEach(f => {
+    if (Object.prototype.hasOwnProperty.call(src, f.key)) next[f.key] = src[f.key];
+  });
+  const merged = Object.assign({}, current, next);
+  for (const f of fields) {
+    if (!Object.prototype.hasOwnProperty.call(next, f.key)) continue;
+    const v = next[f.key];
+    let ok;
+    if (f.kind === "num") {
+      const lo = typeof f.min === "function" ? f.min(merged) : f.min;
+      const hi = typeof f.max === "function" ? f.max(merged) : f.max;
+      ok = typeof v === "number" && isFinite(v) && v >= lo && v <= hi && (!f.int || Number.isInteger(v));
+    } else if (f.kind === "opt") {
+      ok = typeof v === "string" && f.options.indexOf(v) !== -1;
+    } else {
+      ok = typeof v === "boolean";
+    }
+    if (!ok) return { error: "The saved value for \u201C" + f.label + "\u201D does not fit what this tool allows, so nothing was loaded." };
+  }
+  return { values: next };
+}
+
+const SCENARIO_FIELDS = [
+  { key: "kind", label: "Kind of equity", kind: "opt", options: ["real", "profits", "phantom", "revshare"] },
+  { key: "profit", label: "Owner-adjusted profit", kind: "num", min: 200, max: 12000 },
+  { key: "mult", label: "Multiple the firm could sell for", kind: "num", min: 3, max: 14 },
+  { key: "stake", label: "Share being offered to you", kind: "num", min: 1, max: 50 },
+  { key: "discount", label: "Discount to market price for an internal buyer", kind: "num", min: 0, max: 45 },
+  { key: "payout", label: "Share of profit the firm distributes", kind: "num", min: 0, max: 100 },
+  { key: "growth", label: "Firm growth per year", kind: "num", min: -2, max: 20 },
+  { key: "comp", label: "Your compensation today", kind: "num", min: 80, max: 1200 },
+  { key: "down", label: "Cash you can put down", kind: "num", min: 0, max: s => Math.max(50, Math.round(s.profit * s.mult * (s.stake / 100) * (1 - s.discount / 100))) },
+  { key: "years", label: "Financing term", kind: "num", min: 3, max: 15 },
+  { key: "rate", label: "Interest rate", kind: "num", min: 4, max: 13 },
+  { key: "living", label: "Your living costs, after tax", kind: "num", min: 30, max: 500 },
+  { key: "otherDebt", label: "Existing debt payments per year", kind: "num", min: 0, max: 200 },
+  { key: "taxRate", label: "Your effective tax rate", kind: "num", min: 15, max: 50 },
+  { key: "invReturn", label: "Return if you invested the money instead", kind: "num", min: 2, max: 12 },
+  { key: "clientsHeld", label: "Share of the top households that would take your call without the founder", kind: "num", min: 0, max: 100 }
+];
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const K = n => {
   const v = n * 1000;
@@ -212,6 +299,30 @@ function G2BuyIn() {
     };
   }, [invReturn, growth, down, m, stake, years, rate]);
   const eq = EQUITY.find(e => e.id === kind);
+  // ---- save and load a scenario ----
+  const [ioMsg, setIoMsg] = useState({ text: "", bad: false });
+  const scenarioNow = { kind, profit, mult, stake, discount, payout, growth, comp, down, years, rate, living, otherDebt, taxRate, invReturn, clientsHeld };
+  const scenarioSetters = { kind: setKind, profit: setProfit, mult: setMult, stake: setStake, discount: setDiscount, payout: setPayout, growth: setGrowth, comp: setComp, down: setDown, years: setYears, rate: setRate, living: setLiving, otherDebt: setOtherDebt, taxRate: setTaxRate, invReturn: setInvReturn, clientsHeld: setClientsHeld };
+  const saveScenario = () => {
+    saveScenarioFile("buy-in", scenarioNow);
+    setIoMsg({ text: "Scenario saved as a file in your downloads.", bad: false });
+  };
+  const loadScenario = () => pickScenarioFile(text => {
+    let doc;
+    try {
+      doc = JSON.parse(text);
+    } catch (err) {
+      setIoMsg({ text: "That file is not a readable scenario.", bad: true });
+      return;
+    }
+    const result = checkScenario(doc, "buy-in", SCENARIO_FIELDS, scenarioNow);
+    if (result.error) {
+      setIoMsg({ text: result.error, bad: true });
+      return;
+    }
+    Object.keys(result.values).forEach(k => scenarioSetters[k](result.values[k]));
+    setIoMsg({ text: "Scenario loaded.", bad: false });
+  }, message => setIoMsg({ text: message, bad: true }));
   const TABS = [["offer", "The offer"], ["afford", "Can you afford it"], ["lev", "Your leverage"], ["ten", "Ten years out"], ["paper", "In writing"]];
   return /*#__PURE__*/React.createElement("div", {
     className: "g2"
@@ -227,6 +338,13 @@ function G2BuyIn() {
         .g2-w{max-width:1020px;margin:0 auto}
         .g2 h1{font-family:var(--serif);font-size:31px;line-height:1.13;font-weight:500;margin:0 0 8px;letter-spacing:-.01em}
         .g2-lede{color:var(--muted);max-width:62ch;margin:0 0 20px}
+        .g2-io{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:0 0 18px}
+        .g2-io-btn{font:inherit;font-size:13.5px;padding:7px 14px;border:1px solid #7F8C9A;background:transparent;color:var(--ink);border-radius:2px;cursor:pointer}
+        .g2-io-btn:hover{border-color:var(--ink)}
+        .g2-io-btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+        .g2-io p{margin:0;font-size:12.5px;color:var(--muted)}
+        .g2-io-msg{font-size:13px}
+        .g2-io-note{flex-basis:100%}
         .g2-bar{display:flex;flex-wrap:wrap;gap:18px;background:var(--ink);color:#E9EEF1;padding:14px 18px;border-radius:3px;margin-bottom:18px}
         .g2-bar div{min-width:108px}
         .g2-bar b{display:block;font-family:var(--serif);font-size:22px;font-variant-numeric:tabular-nums;font-weight:500}
@@ -271,6 +389,24 @@ function G2BuyIn() {
   }, /*#__PURE__*/React.createElement("h1", null, "If you have been offered equity, this works out what it is worth."), /*#__PURE__*/React.createElement("p", {
     className: "g2-lede"
   }, "Five questions, in this order: what you are being offered, whether you can pay for it, what your staying is worth to the firm, whether buying in beats staying an employee, and what should be in the document before you sign."),/*#__PURE__*/React.createElement("div", {
+    className: "g2-io"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "g2-io-btn",
+    onClick: saveScenario
+  }, "Save scenario"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "g2-io-btn",
+    onClick: loadScenario
+  }, "Load scenario"), /*#__PURE__*/React.createElement("p", {
+    className: "g2-io-msg",
+    role: "status",
+    style: {
+      color: ioMsg.bad ? "#8A3B2C" : undefined
+    }
+  }, ioMsg.text), /*#__PURE__*/React.createElement("p", {
+    className: "g2-io-note"
+  }, "Files are saved to your own computer. Nothing is sent to us, and anyone who has the file can read your figures.")), /*#__PURE__*/React.createElement("div", {
     className: "g2-bar"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, K(m.price)), /*#__PURE__*/React.createElement("span", null, "Your buy-in")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, K(m.debtService)), /*#__PURE__*/React.createElement("span", null, "Annual payment")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", {
     style: {

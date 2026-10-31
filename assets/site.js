@@ -380,29 +380,48 @@
   })();
 
   /* ---------- contact form ---------- */
+  // The form posts JSON to this endpoint (a Formspree form URL). While it still holds the
+  // placeholder the form refuses to send, so a thank-you can never be shown for a message that went nowhere.
+  var FORM_ENDPOINT = 'https://formspree.io/f/REPLACE_ME';
   var form = document.querySelector('form.book');
   if (form) {
     var sending = false;
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       if (sending) return;
-      sending = true;
       var btn = form.querySelector('button[type="submit"]');
       var s = $('sent');
       var okText = s ? s.getAttribute('data-ok') || '' : '';
-      // aria-disabled keeps focus on the button while the message is sending
+      var fail = function (text) { if (s) { s.textContent = text; s.focus(); } };
+      var data = {};
+      new FormData(form).forEach(function (value, key) { data[key] = value; });
+
+      if (FORM_ENDPOINT.indexOf('REPLACE_ME') !== -1) {
+        fail('This form is not connected yet, so your message was not sent. Please email connorptcu@outlook.com directly.');
+        return;
+      }
+      // a person never sees the honeypot field, so anything in it means a bot and nothing is sent
+      if (data.company) {
+        fail('Your message did not send. Please email connorptcu@outlook.com directly.');
+        return;
+      }
+      delete data.company;
+
+      sending = true;
+      // aria-disabled plus the guard above keeps focus on the button while the message is sending
       if (btn) { btn.setAttribute('aria-disabled', 'true'); btn.textContent = 'Sending…'; }
       if (s) s.textContent = '';
 
-      fetch(form.action, {
+      fetch(FORM_ENDPOINT, {
         method: 'POST',
-        headers: { Accept: 'application/json' },
-        body: new FormData(form)
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(data)
       })
         .then(function (res) {
+          // res.ok is true only for a 2xx response; anything else is treated as not sent
           if (!res.ok) throw new Error('send failed');
-          if (s) s.textContent = okText;
           form.reset();
+          if (s) s.textContent = okText;
         })
         .catch(function () {
           if (s) s.textContent = 'Your message did not send. Please email connorptcu@outlook.com directly.';

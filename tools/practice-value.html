@@ -27,6 +27,87 @@
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script>
 var useState = React.useState, useMemo = React.useMemo, useEffect = React.useEffect;
+
+// ---- Save and load a scenario: a plain JSON file kept on the user's own computer ----
+const SCENARIO_VERSION = 1;
+const scenarioDate = () => {
+  const d = new Date();
+  const p = n => String(n).padStart(2, "0");
+  return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+};
+function saveScenarioFile(tool, inputs) {
+  const doc = { tool: tool, version: SCENARIO_VERSION, savedAt: new Date().toISOString(), inputs: inputs };
+  const url = URL.createObjectURL(new Blob([JSON.stringify(doc, null, 2)], { type: "application/json" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "carry-forward-" + tool + "-" + scenarioDate() + ".json";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function pickScenarioFile(onText, onError) {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "application/json,.json";
+  input.onchange = () => {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    if (file.size > 200000) {
+      onError("That file is too large to be a saved scenario.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => onText(String(reader.result));
+    reader.onerror = () => onError("That file could not be read.");
+    reader.readAsText(file);
+  };
+  input.click();
+}
+// Only keys the tool itself defines are read, so anything else in the file is ignored. Every value
+// must fit what the tool's own controls allow; a range can depend on other inputs (for example revenue),
+// so each value is checked against the figures as they would stand once the file is applied.
+function checkScenario(doc, tool, fields, current) {
+  if (!doc || typeof doc !== "object" || Array.isArray(doc)) return { error: "That file is not a saved scenario." };
+  if (doc.tool !== tool) return { error: "That file was saved from a different tool." };
+  if (doc.version !== SCENARIO_VERSION) return { error: "That file was saved by a different version of this tool." };
+  const src = doc.inputs;
+  if (!src || typeof src !== "object" || Array.isArray(src)) return { error: "That file has no saved figures." };
+  const next = {};
+  fields.forEach(f => {
+    if (Object.prototype.hasOwnProperty.call(src, f.key)) next[f.key] = src[f.key];
+  });
+  const merged = Object.assign({}, current, next);
+  for (const f of fields) {
+    if (!Object.prototype.hasOwnProperty.call(next, f.key)) continue;
+    const v = next[f.key];
+    let ok;
+    if (f.kind === "num") {
+      const lo = typeof f.min === "function" ? f.min(merged) : f.min;
+      const hi = typeof f.max === "function" ? f.max(merged) : f.max;
+      ok = typeof v === "number" && isFinite(v) && v >= lo && v <= hi && (!f.int || Number.isInteger(v));
+    } else if (f.kind === "opt") {
+      ok = typeof v === "string" && f.options.indexOf(v) !== -1;
+    } else {
+      ok = typeof v === "boolean";
+    }
+    if (!ok) return { error: "The saved value for \u201C" + f.label + "\u201D does not fit what this tool allows, so nothing was loaded." };
+  }
+  return { values: next };
+}
+
+const SCENARIO_FIELDS = [
+  { key: "channel", label: "Channel", kind: "opt", options: ["ria", "hybrid", "wire"] },
+  { key: "aum", label: "Assets under management", kind: "num", min: 10, max: 10000 },
+  { key: "rev", label: "Revenue, last 12 months", kind: "num", min: 100, max: 50000 },
+  { key: "feeMix", label: "Revenue that recurs each year", kind: "num", min: 0, max: 100 },
+  { key: "clientAge", label: "Average client age", kind: "num", min: 40, max: 82 },
+  { key: "conc", label: "Revenue in your top 10 households", kind: "num", min: 5, max: 80 },
+  { key: "growth", label: "Organic growth, three-year average", kind: "num", min: -6, max: 20 },
+  { key: "retention", label: "Client retention", kind: "num", min: 80, max: 100 },
+  { key: "team", label: "Who else the clients trust", kind: "opt", options: ["solo", "junior", "g2"] },
+  { key: "margin", label: "Owner-adjusted profit margin", kind: "num", min: 10, max: 100 }
+];
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const money = n => (Math.round(n) < 0 ? "−" : "") + "$" + Math.abs(Math.round(n)).toLocaleString("en-US");
 const aumFmt = m => m >= 1000 ? "$" + (m / 1000).toFixed(m >= 10000 ? 1 : 2) + "B" : "$" + m + "M";
@@ -284,6 +365,30 @@ function PracticeValue() {
     });
     return out.sort((a, b) => b.delta - a.delta).slice(0, 4);
   }, [feeMix, clientAge, conc, growth, retention, team, channel, rev, margin, model.value]);
+  // ---- save and load a scenario ----
+  const [ioMsg, setIoMsg] = useState({ text: "", bad: false });
+  const scenarioNow = { channel, aum, rev, feeMix, clientAge, conc, growth, retention, team, margin };
+  const scenarioSetters = { channel: setChannel, aum: setAum, rev: setRev, feeMix: setFeeMix, clientAge: setClientAge, conc: setConc, growth: setGrowth, retention: setRetention, team: setTeam, margin: setMargin };
+  const saveScenario = () => {
+    saveScenarioFile("practice-value", scenarioNow);
+    setIoMsg({ text: "Scenario saved as a file in your downloads.", bad: false });
+  };
+  const loadScenario = () => pickScenarioFile(text => {
+    let doc;
+    try {
+      doc = JSON.parse(text);
+    } catch (err) {
+      setIoMsg({ text: "That file is not a readable scenario.", bad: true });
+      return;
+    }
+    const result = checkScenario(doc, "practice-value", SCENARIO_FIELDS, scenarioNow);
+    if (result.error) {
+      setIoMsg({ text: result.error, bad: true });
+      return;
+    }
+    Object.keys(result.values).forEach(k => scenarioSetters[k](result.values[k]));
+    setIoMsg({ text: "Scenario loaded.", bad: false });
+  }, message => setIoMsg({ text: message, bad: true }));
   const wire = channel === "wire";
   const programAward = model.t12 * 1.75;
   const programAfterTax = programAward * (1 - ORDINARY);
@@ -323,6 +428,13 @@ function PracticeValue() {
           font-weight: 500;
         }
         .pv-lede { color: var(--muted); max-width: 60ch; margin: 0 0 26px; }
+        .pv-io{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:0 0 18px}
+        .pv-io-btn{font:inherit;font-size:13.5px;padding:7px 14px;border:1px solid #7F8C9A;background:transparent;color:var(--ink);border-radius:2px;cursor:pointer}
+        .pv-io-btn:hover{border-color:var(--ink)}
+        .pv-io-btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+        .pv-io p{margin:0;font-size:12.5px;color:var(--muted)}
+        .pv-io-msg{font-size:13px}
+        .pv-io-note{flex-basis:100%}
         .pv-grid { display: grid; grid-template-columns: 330px 1fr; gap: 22px; align-items: start; }
         @media (max-width: 860px) { .pv-grid { grid-template-columns: 1fr; } }
         .pv-panel {
@@ -418,6 +530,24 @@ function PracticeValue() {
   }, "What your practice is worth, and what waiting may cost"), /*#__PURE__*/React.createElement("p", {
     className: "pv-lede"
   }, "What a practice is worth is often shaped years before any sale. This tool shows the estimate today, the factors behind it and what each path out pays after tax."), /*#__PURE__*/React.createElement("div", {
+    className: "pv-io"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "pv-io-btn",
+    onClick: saveScenario
+  }, "Save scenario"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "pv-io-btn",
+    onClick: loadScenario
+  }, "Load scenario"), /*#__PURE__*/React.createElement("p", {
+    className: "pv-io-msg",
+    role: "status",
+    style: {
+      color: ioMsg.bad ? "#8A3B2C" : undefined
+    }
+  }, ioMsg.text), /*#__PURE__*/React.createElement("p", {
+    className: "pv-io-note"
+  }, "Files are saved to your own computer. Nothing is sent to us, and anyone who has the file can read your figures.")), /*#__PURE__*/React.createElement("div", {
     className: "pv-grid"
   }, /*#__PURE__*/React.createElement("div", {
     className: "pv-panel"

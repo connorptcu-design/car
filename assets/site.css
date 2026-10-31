@@ -154,6 +154,7 @@ form.book .fg{margin-bottom:15px}
 form.book label{display:block;font-size:13.5px;margin-bottom:6px}
 form.book input,form.book textarea,form.book select{width:100%;font:inherit;font-size:15px;padding:11px 12px;border:1px solid var(--field);border-radius:2px;background:#fff;color:var(--ink)}
 form.book textarea{min-height:92px;resize:vertical}
+.hp{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
 #sent{margin:14px 0 0}
 #sent:empty{margin:0}
 

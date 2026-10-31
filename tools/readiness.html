@@ -27,6 +27,127 @@
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script>
 var useState = React.useState, useMemo = React.useMemo, useEffect = React.useEffect;
+
+// ---- Save and load a scenario: a plain JSON file kept on the user's own computer ----
+const SCENARIO_VERSION = 1;
+const scenarioDate = () => {
+  const d = new Date();
+  const p = n => String(n).padStart(2, "0");
+  return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+};
+function saveScenarioFile(tool, inputs) {
+  const doc = { tool: tool, version: SCENARIO_VERSION, savedAt: new Date().toISOString(), inputs: inputs };
+  const url = URL.createObjectURL(new Blob([JSON.stringify(doc, null, 2)], { type: "application/json" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "carry-forward-" + tool + "-" + scenarioDate() + ".json";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function pickScenarioFile(onText, onError) {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "application/json,.json";
+  input.onchange = () => {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    if (file.size > 200000) {
+      onError("That file is too large to be a saved scenario.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => onText(String(reader.result));
+    reader.onerror = () => onError("That file could not be read.");
+    reader.readAsText(file);
+  };
+  input.click();
+}
+// Only keys the tool itself defines are read, so anything else in the file is ignored. Every value
+// must fit what the tool's own controls allow; a range can depend on other inputs (for example revenue),
+// so each value is checked against the figures as they would stand once the file is applied.
+function checkScenario(doc, tool, fields, current) {
+  if (!doc || typeof doc !== "object" || Array.isArray(doc)) return { error: "That file is not a saved scenario." };
+  if (doc.tool !== tool) return { error: "That file was saved from a different tool." };
+  if (doc.version !== SCENARIO_VERSION) return { error: "That file was saved by a different version of this tool." };
+  const src = doc.inputs;
+  if (!src || typeof src !== "object" || Array.isArray(src)) return { error: "That file has no saved figures." };
+  const next = {};
+  fields.forEach(f => {
+    if (Object.prototype.hasOwnProperty.call(src, f.key)) next[f.key] = src[f.key];
+  });
+  const merged = Object.assign({}, current, next);
+  for (const f of fields) {
+    if (!Object.prototype.hasOwnProperty.call(next, f.key)) continue;
+    const v = next[f.key];
+    let ok;
+    if (f.kind === "num") {
+      const lo = typeof f.min === "function" ? f.min(merged) : f.min;
+      const hi = typeof f.max === "function" ? f.max(merged) : f.max;
+      ok = typeof v === "number" && isFinite(v) && v >= lo && v <= hi && (!f.int || Number.isInteger(v));
+    } else if (f.kind === "opt") {
+      ok = typeof v === "string" && f.options.indexOf(v) !== -1;
+    } else {
+      ok = typeof v === "boolean";
+    }
+    if (!ok) return { error: "The saved value for \u201C" + f.label + "\u201D does not fit what this tool allows, so nothing was loaded." };
+  }
+  return { values: next };
+}
+
+const SCENARIO_FIELDS = [
+  { key: "fmodel", label: "Firm model", kind: "opt", options: ["solo", "silo", "ensemble", "enterprise"] },
+  { key: "rev", label: "Revenue", kind: "num", min: 500, max: 50000 },
+  { key: "households", label: "Client households", kind: "num", min: 40, max: s => clamp(Math.round(s.rev / 3), 400, 20000) },
+  { key: "leads", label: "Lead advisors", kind: "num", min: 1, max: s => clamp(Math.ceil(s.rev / 350), 8, 60) },
+  { key: "assoc", label: "Associate advisors and planners", kind: "num", min: 0, max: s => clamp(Math.ceil(s.rev / 350), 8, 60) },
+  { key: "service", label: "Client service associates", kind: "num", min: 0, max: s => clamp(Math.ceil(s.rev / 280), 10, 75) },
+  { key: "ops", label: "Operations and administration", kind: "num", min: 0, max: s => clamp(Math.ceil(s.rev / 470), 6, 45) },
+  { key: "leadership", label: "Leadership in place", kind: "bool" },
+  { key: "g2Owner", label: "Next generation owns relationships", kind: "bool" },
+  { key: "buySell", label: "Buy-sell in place", kind: "bool" },
+  { key: "founderAge", label: "Age of the founding advisor", kind: "num", min: 45, max: 80 },
+  { key: "capPerLead", label: "Households one lead advisor can serve well", kind: "num", min: 50, max: 500 },
+  { key: "capPerAssoc", label: "Extra households each associate advisor adds", kind: "num", min: 0, max: 200 },
+  { key: "growthTarget", label: "Organic growth target", kind: "num", min: 0, max: 20 },
+  { key: "soleRel", label: "Revenue where the founder is the sole relationship", kind: "num", min: 0, max: 100 },
+  { key: "secondMet", label: "Top households that met a second team member", kind: "num", min: 0, max: 100 },
+  { key: "nextGen", label: "Households where the team knows an adult child", kind: "num", min: 0, max: 100 },
+  { key: "docService", label: "Documented service model", kind: "bool" },
+  { key: "crmNotes", label: "CRM notes", kind: "bool" },
+  { key: "nonSolicit", label: "Signed non-solicits", kind: "bool" },
+  { key: "ownerComp", label: "Total compensation to owners", kind: "num", min: 0, max: s => Math.max(500, Math.round(s.rev * 0.7)) },
+  { key: "otherExp", label: "All other operating expenses", kind: "num", min: 0, max: s => Math.max(500, Math.round(s.rev * 0.9)) },
+  { key: "personalExp", label: "Personal expenses running through the business", kind: "num", min: 0, max: s => Math.max(100, Math.round(s.rev * 0.1)) },
+  { key: "oneTime", label: "One-time and non-recurring costs", kind: "num", min: 0, max: s => Math.max(100, Math.round(s.rev * 0.1)) },
+  { key: "ownerProd", label: "Revenue the owners personally produce", kind: "num", min: 0, max: s => s.rev },
+  { key: "stake", label: "Share of equity being sold in this tranche", kind: "num", min: 5, max: 100 },
+  { key: "loanYears", label: "Financing term", kind: "num", min: 5, max: 15 },
+  { key: "loanRate", label: "Interest rate", kind: "num", min: 4, max: 12 },
+  { key: "internalDisc", label: "Discount to market price for an internal buyer", kind: "num", min: 0, max: 40 },
+  { key: "ownPct", label: "Your ownership of the firm", kind: "num", min: 1, max: 100 },
+  { key: "sellShare", label: "How much of your stake you are selling", kind: "num", min: 5, max: 100 },
+  { key: "buyer", label: "Who is buying", kind: "opt", options: ["redeem", "cross", "g2", "minority", "recap", "outside"] },
+  { key: "entity", label: "How the interest is held and sold", kind: "opt", options: ["s-stock", "s-asset", "llc", "c-asset"] },
+  { key: "noDiscounts", label: "Ignore minority and marketability discounts", kind: "bool" },
+  { key: "funded", label: "Funded buy-sell", kind: "bool" },
+  { key: "rollShare", label: "Share of the price rolled into the platform", kind: "num", min: 0, max: 60 },
+  { key: "holdYears", label: "Years until the platform sells again", kind: "num", min: 3, max: 10 },
+  { key: "platGrowth", label: "Platform profit growth per year", kind: "num", min: 0, max: 30 },
+  { key: "multExp", label: "Multiple expansion at exit", kind: "num", min: 0, max: 60 },
+  { key: "score_rev", label: "Revenue quality score", kind: "num", min: 1, max: 5, int: true },
+  { key: "score_growth", label: "Growth score", kind: "num", min: 1, max: 5, int: true },
+  { key: "score_transfer", label: "Transferability score", kind: "num", min: 1, max: 5, int: true },
+  { key: "score_g2", label: "Next-generation score", kind: "num", min: 1, max: 5, int: true },
+  { key: "score_margin", label: "Margin score", kind: "num", min: 1, max: 5, int: true },
+  { key: "score_ops", label: "Operations score", kind: "num", min: 1, max: 5, int: true },
+  { key: "score_books", label: "Books score", kind: "num", min: 1, max: 5, int: true },
+  { key: "score_comp", label: "Compensation score", kind: "num", min: 1, max: 5, int: true },
+  { key: "score_legal", label: "Legal score", kind: "num", min: 1, max: 5, int: true },
+  { key: "upgradeModel", label: "Upgrade the firm model after preparation", kind: "bool" },
+  { key: "programMonths", label: "Length of the preparation retainer", kind: "num", min: 6, max: 36 }
+];
 const DISCOUNT = 0.09; // seller's required return on deferred, at-risk proceeds
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const niceStep = v => {
@@ -548,6 +669,30 @@ function TransitionProgram() {
     };
   }, [leads, assoc, service, ops, households, leadership, capPerLead, capPerAssoc, growthTarget]);
   const mObj = FIRM_MODELS.find(m => m.id === fmodel);
+  // ---- save and load a scenario ----
+  const [ioMsg, setIoMsg] = useState({ text: "", bad: false });
+  const scenarioNow = { fmodel, rev, households, leads, assoc, service, ops, leadership, g2Owner, buySell, founderAge, capPerLead, capPerAssoc, growthTarget, soleRel, secondMet, nextGen, docService, crmNotes, nonSolicit, ownerComp, otherExp, personalExp, oneTime, ownerProd, stake, loanYears, loanRate, internalDisc, ownPct, sellShare, buyer, entity, noDiscounts, funded, rollShare, holdYears, platGrowth, multExp, upgradeModel, programMonths, score_rev: scores.rev, score_growth: scores.growth, score_transfer: scores.transfer, score_g2: scores.g2, score_margin: scores.margin, score_ops: scores.ops, score_books: scores.books, score_comp: scores.comp, score_legal: scores.legal };
+  const scenarioSetters = { fmodel: setFmodel, rev: setRev, households: setHouseholds, leads: setLeads, assoc: setAssoc, service: setService, ops: setOps, leadership: setLeadership, g2Owner: setG2Owner, buySell: setBuySell, founderAge: setFounderAge, capPerLead: setCapPerLead, capPerAssoc: setCapPerAssoc, growthTarget: setGrowthTarget, soleRel: setSoleRel, secondMet: setSecondMet, nextGen: setNextGen, docService: setDocService, crmNotes: setCrmNotes, nonSolicit: setNonSolicit, ownerComp: setOwnerComp, otherExp: setOtherExp, personalExp: setPersonalExp, oneTime: setOneTime, ownerProd: setOwnerProd, stake: setStake, loanYears: setLoanYears, loanRate: setLoanRate, internalDisc: setInternalDisc, ownPct: setOwnPct, sellShare: setSellShare, buyer: setBuyer, entity: setEntity, noDiscounts: setNoDiscounts, funded: setFunded, rollShare: setRollShare, holdYears: setHoldYears, platGrowth: setPlatGrowth, multExp: setMultExp, upgradeModel: setUpgradeModel, programMonths: setProgramMonths, score_rev: v => setScore("rev", v), score_growth: v => setScore("growth", v), score_transfer: v => setScore("transfer", v), score_g2: v => setScore("g2", v), score_margin: v => setScore("margin", v), score_ops: v => setScore("ops", v), score_books: v => setScore("books", v), score_comp: v => setScore("comp", v), score_legal: v => setScore("legal", v) };
+  const saveScenario = () => {
+    saveScenarioFile("readiness", scenarioNow);
+    setIoMsg({ text: "Scenario saved as a file in your downloads.", bad: false });
+  };
+  const loadScenario = () => pickScenarioFile(text => {
+    let doc;
+    try {
+      doc = JSON.parse(text);
+    } catch (err) {
+      setIoMsg({ text: "That file is not a readable scenario.", bad: true });
+      return;
+    }
+    const result = checkScenario(doc, "readiness", SCENARIO_FIELDS, scenarioNow);
+    if (result.error) {
+      setIoMsg({ text: result.error, bad: true });
+      return;
+    }
+    Object.keys(result.values).forEach(k => scenarioSetters[k](result.values[k]));
+    setIoMsg({ text: "Scenario loaded.", bad: false });
+  }, message => setIoMsg({ text: message, bad: true }));
   const TABS = [["team", "Team"], ["transfer", "Transferability"], ["econ", "Economics"], ["stake", "Your stake"], ["ready", "Readiness"], ["ask", "Discovery"], ["case", "The case"]];
   let capVerdictHead, capVerdictBody;
   if (growthCap.utilization > 1) {
@@ -627,6 +772,13 @@ function TransitionProgram() {
         .tp-w{max-width:1060px;margin:0 auto}
         .tp h1{font-family:var(--serif);font-size:32px;line-height:1.12;font-weight:500;margin:0 0 8px;letter-spacing:-.01em}
         .tp-lede{color:var(--muted);max-width:62ch;margin:0 0 22px}
+        .tp-io{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:0 0 18px}
+        .tp-io-btn{font:inherit;font-size:13.5px;padding:7px 14px;border:1px solid #7F8C9A;background:transparent;color:var(--ink);border-radius:2px;cursor:pointer}
+        .tp-io-btn:hover{border-color:var(--ink)}
+        .tp-io-btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+        .tp-io p{margin:0;font-size:12.5px;color:var(--muted)}
+        .tp-io-msg{font-size:13px}
+        .tp-io-note{flex-basis:100%}
         .tp-bar{display:flex;flex-wrap:wrap;gap:18px;background:var(--ink);color:#EAEFEA;padding:14px 18px;border-radius:3px;margin-bottom:18px}
         .tp-bar div{min-width:110px}
         .tp-bar b{display:block;font-family:var(--serif);font-size:22px;font-variant-numeric:tabular-nums;font-weight:500}
@@ -691,6 +843,24 @@ function TransitionProgram() {
   }, /*#__PURE__*/React.createElement("h1", null, "Getting a team ready to sell, hand off or hand down"), /*#__PURE__*/React.createElement("p", {
     className: "tp-lede"
   }, "Seven linked diagnostics run in sequence. They start with team structure and capacity, because structure determines what is being sold. They continue with client transferability, restated economics, what a single partner's stake is worth, the diligence scorecard, the discovery sequence and the value at stake."),/*#__PURE__*/React.createElement("div", {
+    className: "tp-io"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "tp-io-btn",
+    onClick: saveScenario
+  }, "Save scenario"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "tp-io-btn",
+    onClick: loadScenario
+  }, "Load scenario"), /*#__PURE__*/React.createElement("p", {
+    className: "tp-io-msg",
+    role: "status",
+    style: {
+      color: ioMsg.bad ? "#8A3B2C" : undefined
+    }
+  }, ioMsg.text), /*#__PURE__*/React.createElement("p", {
+    className: "tp-io-note"
+  }, "Files are saved to your own computer. Nothing is sent to us, and anyone who has the file can read your figures.")), /*#__PURE__*/React.createElement("div", {
     className: "tp-bar"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, K(econ.adj)), /*#__PURE__*/React.createElement("span", null, "Owner-adjusted profit")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, econ.mult.toFixed(1), "×"), /*#__PURE__*/React.createElement("span", null, "Blended multiple")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, K(econ.ev)), /*#__PURE__*/React.createElement("span", null, "Enterprise value")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, pct(transfer.score)), /*#__PURE__*/React.createElement("span", null, "Transferability score")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, pct(readiness.p)), /*#__PURE__*/React.createElement("span", null, "Diligence readiness"))), /*#__PURE__*/React.createElement("div", {
     className: "tp-tabs"
@@ -1357,7 +1527,7 @@ function TransitionProgram() {
     className: "tp-q"
   }, /*#__PURE__*/React.createElement("p", null, "Roughly a quarter of advisors within ten years of retiring are still unsure of their succession plans."), /*#__PURE__*/React.createElement("em", null, "That is not a failing. The decision often has no fixed deadline until a health event or a buyer sets one.")), /*#__PURE__*/React.createElement("div", {
     className: "tp-q"
-  }, /*#__PURE__*/React.createElement("p", null, "In Cerulli's 2024 study, independent advisors ranked finding a qualified buyer, structuring terms and valuing the practice as their three hardest succession problems, in that order."), /*#__PURE__*/React.createElement("em", null, "Valuation ranks third. A founder may be more concerned about who the buyer is and how the deal is structured than about price, even if price is the first topic.")), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("p", null, "In Cerulli's January 2025 research, independent advisors ranked finding a qualified buyer, structuring terms and valuing the practice as their three hardest succession problems, in that order."), /*#__PURE__*/React.createElement("em", null, "Valuation ranks third. A founder may be more concerned about who the buyer is and how the deal is structured than about price, even if price is the first topic.")), /*#__PURE__*/React.createElement("div", {
     className: "tp-q"
   }, /*#__PURE__*/React.createElement("p", null, "Firms report that the time it takes to develop a junior advisor is a major barrier to building a bench, and that many trainees leave before they finish."), /*#__PURE__*/React.createElement("em", null, "This is relevant when a founder plans to hire a successor. Hiring starts a development process that can take about five years, which may not fit a three-year timeline.")))), tab === "case" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     className: "tp-2"
