@@ -81,6 +81,14 @@ section.last{border-bottom:none}
 .hero .cta{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap}
 .eyebrow{font-size:11.5px;font-weight:600;letter-spacing:.17em;text-transform:uppercase;color:var(--gold-deep);margin-bottom:15px}
 .eyebrow.alt{color:var(--accent)}
+/* centered single-column page (sign-in): the column, not each element, is centered */
+.centered{max-width:560px;margin:0 auto;text-align:center}
+.centered .lede{margin-left:auto;margin-right:auto}
+.centered .cta{justify-content:center}
+.hero.signin{min-height:62vh;display:flex;align-items:center;padding:72px 0}
+.hero.signin>.w{width:100%}
+.signin-mark{display:block;width:72px;height:72px;margin:0 auto 18px}
+.signin-note{margin-top:22px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:38px;align-items:start}
 @media(max-width:860px){.two{grid-template-columns:1fr;gap:26px}}
 
