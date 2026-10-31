@@ -334,6 +334,13 @@
       // compensation and the tax rate give the estimated take-home pay, so the yearly effect can be read against it
       var takeHome = comp * (1 - tax / 100);
       var share = takeHome > 0 ? Math.round(Math.abs(swing) / takeHome * 100) : 0;
+      var afterBuyIn = takeHome + swing;
+      set('bTake', money(takeHome));
+      var ab = $('bAfter');
+      if (ab) {
+        ab.textContent = money(afterBuyIn);
+        ab.style.color = afterBuyIn >= takeHome ? 'var(--gain)' : 'var(--drag)';
+      }
 
       var note = $('bNote');
       if (note) {
@@ -349,7 +356,7 @@
       }
 
       announce('buyStatus', 'Purchase price ' + money(price) + '. Yearly effect on your cash ' +
-        (swing >= 0 ? 'plus ' : 'minus ') + money(Math.abs(swing)) + '.' +
+        (swing >= 0 ? 'plus ' : 'minus ') + money(Math.abs(swing)) + '. Estimated take-home pay with the buy-in ' + money(afterBuyIn) + '.' +
         (gap > 0 ? ' Warning: the tax owed on your share exceeds the cash distributed to you.' : ''));
     }
 
