@@ -39,9 +39,14 @@ const logVal = (pos, lo, hi) => niceStep(lo * Math.pow(hi / lo, pos / 1000));
 const logPos = (val, lo, hi) => 1000 * Math.log(clamp(val, lo, hi) / lo) / Math.log(hi / lo);
 const K = n => {
   const v = n * 1000;
-  if (Math.abs(v) >= 1000000) return "$" + (v / 1000000).toFixed(Math.abs(v) >= 10000000 ? 1 : 2) + "M";
-  if (Math.abs(v) >= 1000) return "$" + Math.round(v / 1000) + "k";
-  return "$" + Math.round(v);
+  const a = Math.abs(v), s = v < 0 ? "−" : "";
+  if (a >= 999500) {
+    const m = a / 1000000;
+    return s + "$" + m.toFixed(m >= 9.995 ? 1 : 2) + "M";
+  }
+  if (a >= 1000) return s + "$" + Math.round(a / 1000) + "k";
+  const r = Math.round(a);
+  return (r === 0 ? "" : s) + "$" + r;
 };
 const pct = n => Math.round(n) + "%";
 const commas = n => {
@@ -335,7 +340,8 @@ function TransitionProgram() {
     const vals = READINESS.map(r => scores[r.id]);
     const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
     const p = (avg - 1) / 4 * 100;
-    const grade = p >= 80 ? "Ready to go to market" : p >= 62 ? "Marketable, with repricing risk" : p >= 42 ? "Needs a preparation period" : "Needs substantial preparation";
+    const pr = Math.round(p); // the grade follows the percentage shown on screen
+    const grade = pr >= 80 ? "Ready to go to market" : pr >= 62 ? "Marketable, with repricing risk" : pr >= 42 ? "Needs a preparation period" : "Needs substantial preparation";
     const gaps = READINESS.filter(r => scores[r.id] <= 3).sort((a, b) => scores[a.id] - scores[b.id]);
     return {
       avg,
@@ -1186,9 +1192,9 @@ function TransitionProgram() {
     className: "tp-row"
   }, /*#__PURE__*/React.createElement("span", null, "Cash at closing"), /*#__PURE__*/React.createElement("b", null, K(stakeDeal.cash))), /*#__PURE__*/React.createElement("div", {
     className: "tp-row"
-  }, /*#__PURE__*/React.createElement("span", null, "Carried over ", stakeDeal.b.noteYears, " years at ", (stakeDeal.b.noteRate * 100).toFixed(2), "%, including interest"), /*#__PURE__*/React.createElement("b", null, K(stakeDeal.carriedTotal))), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("span", null, "Carried over ", stakeDeal.b.noteYears, " years at ", (stakeDeal.b.noteRate * 100).toFixed(2), "%, in today's dollars"), /*#__PURE__*/React.createElement("b", null, K(stakeDeal.carriedTotal))), /*#__PURE__*/React.createElement("div", {
     className: "tp-row tp-tot"
-  }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("b", null, "Total collected")), /*#__PURE__*/React.createElement("b", null, K(stakeDeal.collected)))), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("b", null, "Total collected, in today's dollars")), /*#__PURE__*/React.createElement("b", null, K(stakeDeal.collected)))), /*#__PURE__*/React.createElement("div", {
     className: "tp-row"
   }, /*#__PURE__*/React.createElement("span", null, "Effective tax on the proceeds"), /*#__PURE__*/React.createElement("b", null, pct(stakeDeal.effTax * 100))), /*#__PURE__*/React.createElement("div", {
     className: "tp-row tp-tot"
@@ -1357,9 +1363,9 @@ function TransitionProgram() {
     className: "tp-row tp-tot"
   }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("b", null, "Value created before anyone negotiates")), /*#__PURE__*/React.createElement("b", {
     style: {
-      color: "var(--gain)"
+      color: caseView.delta >= 0 ? "var(--gain)" : "var(--drag)"
     }
-  }, "+", K(caseView.delta))), /*#__PURE__*/React.createElement("label", {
+  }, caseView.delta >= 0 ? "+" : "", K(caseView.delta))), /*#__PURE__*/React.createElement("label", {
     className: "tp-chk",
     style: {
       marginTop: 10

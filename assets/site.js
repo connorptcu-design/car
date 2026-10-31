@@ -16,10 +16,13 @@
   }
   function qualityFactor(points) { return clamp(1 + points * 0.11, 0.76, 1.24); }
 
+  // sign goes before the dollar sign, and values just under a million roll up to $1.00M
   function money(v) {
-    if (Math.abs(v) >= 1e6) return '$' + (v / 1e6).toFixed(Math.abs(v) >= 1e7 ? 1 : 2) + 'M';
-    if (Math.abs(v) >= 1e3) return '$' + Math.round(v / 1e3) + 'k';
-    return '$' + Math.round(v);
+    var a = Math.abs(v), s = v < 0 ? '−' : '';
+    if (a >= 999500) { var m = a / 1e6; return s + '$' + m.toFixed(m >= 9.995 ? 1 : 2) + 'M'; }
+    if (a >= 1e3) return s + '$' + Math.round(a / 1e3) + 'k';
+    var r = Math.round(a);
+    return (r === 0 ? '' : s) + '$' + r;
   }
   function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
   function $(id) { return document.getElementById(id); }
@@ -67,6 +70,13 @@
     return 1000 * Math.log(clamp(val, lo, hi) / lo) / Math.log(hi / lo);
   }
 
+  /* a value typed between slider steps is kept exactly (opts.exactRange) until
+     the slider itself moves, so a log-scaled slider does not snap it to two
+     significant figures and shift it across a pricing tier */
+  function sliderVal(slider, fallback) {
+    return slider._exact != null && slider._exactPos === +slider.value ? slider._exact : fallback;
+  }
+
   /* pairs a slider with a typed-number box: box mirrors slider on drag,
      and commits back to the slider (clamped) on Enter or blur */
   function bindNumberBox(slider, box, opts) {
@@ -75,18 +85,22 @@
     var decimals = (opts && opts.decimals) || 0;
     var toVal = (opts && opts.toVal) || function (p) { return p; };
     var toPos = (opts && opts.toPos) || function (v) { return v; };
+    var exactRange = opts && opts.exactRange;
 
     function display(raw) {
       return decimals > 0 ? raw.toFixed(decimals) : commas(raw);
     }
     function sync() {
-      box.value = display(toVal(+slider.value) * scale);
+      box.value = display(sliderVal(slider, toVal(+slider.value)) * scale);
     }
     function commit() {
       var parsed = parseMessyNumber(box.value);
       if (isNaN(parsed)) { sync(); return; }
-      var sliderVal = clamp(toPos(parsed / scale), +slider.min, +slider.max);
-      slider.value = sliderVal;
+      slider.value = clamp(toPos(parsed / scale), +slider.min, +slider.max);
+      if (exactRange) {
+        slider._exact = clamp(parsed / scale, exactRange[0], exactRange[1]);
+        slider._exactPos = +slider.value;
+      }
       sync();
       slider.dispatchEvent(new Event('input'));
       slider.dispatchEvent(new Event('change'));
@@ -135,7 +149,7 @@
     if (!ok) return;
 
     function calc() {
-      var rev = logVal(+el.rev.value, REV_LO, REV_HI) * 1000;
+      var rev = sliderVal(el.rev, logVal(+el.rev.value, REV_LO, REV_HI)) * 1000;
       var margin = +el.margin.value / 100;
       var fee = +el.fee.value, age = +el.age.value, grow = +el.grow.value;
       var team = +el.team.value, struct = +el.struct.value;
@@ -143,6 +157,19 @@
       // Priced on owner-adjusted profit, the way buyers actually price practices.
       // The revenue multiple is reported as an output, never used as an input.
       var ebitda = rev * margin;
+
+      // with no owner-adjusted profit there is nothing to price, so show that instead of a $0 range
+      if (ebitda <= 0) {
+        ['range', 'multOut', 'ebitdaOut', 'keyPerson', 'prepared', 'delta'].forEach(function (id) { set(id, '—'); });
+        set('ebitdaVal', money(0));
+        var bf0 = $('bigFirmNote'); if (bf0) bf0.style.display = 'none';
+        var vb0 = $('verdict'), vt0 = $('verdictText');
+        if (vb0 && vt0) {
+          vb0.textContent = 'No owner-adjusted profit to price';
+          vt0.textContent = 'This estimate prices owner-adjusted profit, so there is no value to show at a 0% margin. Raise the margin to see a range.';
+        }
+        return;
+      }
       var base = ebitdaBase(ebitda);
 
       var mixAdj = clamp((fee - 65) * 0.014, -0.55, 0.55);
@@ -200,7 +227,7 @@
       el[i].addEventListener('change', calc);
     });
 
-    bindNumberBox(el.rev, $('revBox'), { scale: 1000, decimals: 0,
+    bindNumberBox(el.rev, $('revBox'), { scale: 1000, decimals: 0, exactRange: [REV_LO, REV_HI],
       toVal: function (p) { return logVal(p, REV_LO, REV_HI); },
       toPos: function (v) { return logPos(v, REV_LO, REV_HI); } });
     bindNumberBox(el.margin, $('marginBox'), { scale: 1, decimals: 0 });
@@ -256,7 +283,7 @@
 
       set('bEv', money(ev));
       set('bPrice', money(price));
-      set('bDebt', '\u2212' + money(debt));
+      set('bDebt', debt > 0 ? '\u2212' + money(debt) : money(0));
       set('bK1', money(k1));
       set('bDist', money(dist));
       set('bOwed', '\u2212' + money(owed));
@@ -280,14 +307,20 @@
         }
       }
 
+      // compensation and the tax rate give the estimated take-home pay, so the yearly effect can be read against it
+      var takeHome = comp * (1 - tax / 100);
+      var share = takeHome > 0 ? Math.round(Math.abs(swing) / takeHome * 100) : 0;
+
       var note = $('bNote');
       if (note) {
         if (swing < 0) {
           note.textContent = 'On these terms the stake would not cover its own payments. You would fund about ' +
-            money(Math.abs(swing)) + ' a year out of your own income. That does not mean the deal cannot work, but the structure may need to change. Options to examine are a smaller first tranche, a longer term, seller financing below bank rates or a profits interest that requires no cash up front.';
+            money(Math.abs(swing)) + ' a year out of your own income, roughly ' + share + '% of your estimated take-home pay of ' +
+            money(takeHome) + '. That does not mean the deal cannot work, but the structure may need to change. Options to examine are a smaller first tranche, a longer term, seller financing below bank rates or a profits interest that requires no cash up front.';
         } else {
           note.textContent = 'On these terms the distributions, after tax on the allocation, cover the debt service with about ' +
-            money(swing) + ' a year left over. Before relying on that, confirm that the payout ratio is a firm policy rather than the result of one strong year.';
+            money(swing) + ' a year left over, which would add roughly ' + share + '% to your estimated take-home pay of ' +
+            money(takeHome) + '. Before relying on that, confirm that the payout ratio is a firm policy rather than the result of one strong year.';
         }
       }
     }

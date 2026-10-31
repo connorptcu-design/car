@@ -28,7 +28,7 @@
 <script>
 var useState = React.useState, useMemo = React.useMemo, useEffect = React.useEffect;
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-const money = n => "$" + Math.round(n).toLocaleString("en-US");
+const money = n => (Math.round(n) < 0 ? "−" : "") + "$" + Math.abs(Math.round(n)).toLocaleString("en-US");
 const aumFmt = m => m >= 1000 ? "$" + (m / 1000).toFixed(m >= 10000 ? 1 : 2) + "B" : "$" + m + "M";
 const niceStep = v => {
   if (!isFinite(v) || v <= 0) return v;
@@ -39,9 +39,14 @@ const niceStep = v => {
 const logVal = (pos, lo, hi) => niceStep(lo * Math.pow(hi / lo, pos / 1000));
 const logPos = (val, lo, hi) => 1000 * Math.log(clamp(val, lo, hi) / lo) / Math.log(hi / lo);
 const short = n => {
-  if (n >= 1000000) return "$" + (n / 1000000).toFixed(n >= 10000000 ? 1 : 2) + "M";
-  if (n >= 1000) return "$" + Math.round(n / 1000) + "k";
-  return "$" + Math.round(n);
+  const a = Math.abs(n), s = n < 0 ? "−" : "";
+  if (a >= 999500) {
+    const m = a / 1000000;
+    return s + "$" + m.toFixed(m >= 9.995 ? 1 : 2) + "M";
+  }
+  if (a >= 1000) return s + "$" + Math.round(a / 1000) + "k";
+  const r = Math.round(a);
+  return (r === 0 ? "" : s) + "$" + r;
 };
 const commas = n => {
   n = Math.round(n);
@@ -248,7 +253,7 @@ function PracticeValue() {
     const recompute = over => priceFirm({ rev, margin, feeMix, clientAge, conc, growth, retention, team, channel, ...over }).value;
     const out = [];
     if (feeMix < 95) out.push({
-      label: "Move another 20% of revenue onto a recurring fee",
+      label: "Move another " + (Math.min(100, feeMix + 20) - feeMix) + "% of revenue onto a recurring fee",
       delta: recompute({
         feeMix: Math.min(100, feeMix + 20)
       }) - model.value
@@ -260,7 +265,7 @@ function PracticeValue() {
       }) - model.value
     });
     if (conc > 15) out.push({
-      label: "Reduce the top 10 households' share of revenue by 10 percentage points",
+      label: "Reduce the top 10 households' share of revenue by " + (conc - Math.max(10, conc - 10)) + " percentage points",
       delta: recompute({
         conc: Math.max(10, conc - 10)
       }) - model.value
@@ -621,7 +626,7 @@ function PracticeValue() {
     className: "pv-row"
   }, /*#__PURE__*/React.createElement("span", null, "Cash at closing"), /*#__PURE__*/React.createElement("b", null, short(p.cash))), /*#__PURE__*/React.createElement("div", {
     className: "pv-row"
-  }, /*#__PURE__*/React.createElement("span", null, "Total collected"), /*#__PURE__*/React.createElement("b", null, short(p.gross))), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("span", null, "Expected total collected, in today's dollars"), /*#__PURE__*/React.createElement("b", null, short(p.gross))), /*#__PURE__*/React.createElement("div", {
     className: "pv-row",
     style: {
       borderBottom: "none"

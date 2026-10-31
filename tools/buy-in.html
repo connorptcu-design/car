@@ -30,9 +30,14 @@ var useState = React.useState, useMemo = React.useMemo, useEffect = React.useEff
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const K = n => {
   const v = n * 1000;
-  if (Math.abs(v) >= 1000000) return "$" + (v / 1000000).toFixed(Math.abs(v) >= 10000000 ? 1 : 2) + "M";
-  if (Math.abs(v) >= 1000) return "$" + Math.round(v / 1000) + "k";
-  return "$" + Math.round(v);
+  const a = Math.abs(v), s = v < 0 ? "−" : "";
+  if (a >= 999500) {
+    const m = a / 1000000;
+    return s + "$" + m.toFixed(m >= 9.995 ? 1 : 2) + "M";
+  }
+  if (a >= 1000) return s + "$" + Math.round(a / 1000) + "k";
+  const r = Math.round(a);
+  return (r === 0 ? "" : s) + "$" + r;
 };
 const pct = n => Math.round(n) + "%";
 const commas = n => {
@@ -179,7 +184,8 @@ function G2BuyIn() {
     const N = 10;
 
     // Path A: stay an employee, invest what the buy-in would have cost
-    const fvDown = down * Math.pow(1 + r, N);
+    // (a down payment larger than the price is never spent, so only the price counts)
+    const fvDown = Math.min(down, m.price) * Math.pow(1 + r, N);
     let fvAnnual = 0;
     for (let i = 0; i < N; i++) fvAnnual += m.outOfPocket * Math.pow(1 + r, N - i - 1);
     const pathA = fvDown + fvAnnual;
