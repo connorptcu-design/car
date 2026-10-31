@@ -380,9 +380,10 @@
   })();
 
   /* ---------- contact form ---------- */
-  // The form posts JSON to this endpoint (a Formspree form URL). While it still holds the
-  // placeholder the form refuses to send, so a thank-you can never be shown for a message that went nowhere.
-  var FORM_ENDPOINT = 'https://formspree.io/f/REPLACE_ME';
+  // The form posts JSON to this endpoint (a Formspree form URL; keep it identical to the one in request.html).
+  // If it ever holds the REPLACE_ME placeholder again the form refuses to send, so a thank-you can never
+  // be shown for a message that went nowhere.
+  var FORM_ENDPOINT = 'https://formspree.io/f/xnppblqg';
   var form = document.querySelector('form.book');
   if (form) {
     var sending = false;
@@ -420,6 +421,11 @@
         .then(function (res) {
           // res.ok is true only for a 2xx response; anything else is treated as not sent
           if (!res.ok) throw new Error('send failed');
+          return res.json().catch(function () { return {}; });
+        })
+        .then(function (body) {
+          // Formspree also reports a problem in the reply itself, so check that as well
+          if (body && (body.ok === false || body.error)) throw new Error('send failed');
           form.reset();
           if (s) s.textContent = okText;
         })
