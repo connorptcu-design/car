@@ -6,7 +6,7 @@
 // POST /request { email }            -> generates a new random code, stores its hash,
 //                                        emails the plaintext code to the site owner, { ok: true }
 
-var FORM_TARGET = 'https://formsubmit.co/ajax/connorptcu@outlook.com';
+var FORM_TARGET = 'https://formsubmit.co/ajax/connor@carryforwardpartners.com';
 
 function corsHeaders() {
   return {
