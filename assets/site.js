@@ -398,12 +398,12 @@
       new FormData(form).forEach(function (value, key) { data[key] = value; });
 
       if (FORM_ENDPOINT.indexOf('REPLACE_ME') !== -1) {
-        fail('This form is not connected yet, so your message was not sent. Please email connorptcu@outlook.com directly.');
+        fail('This form is not connected yet, so your message was not sent. Please email connor@carryforwardpartners.com directly.');
         return;
       }
       // a person never sees the honeypot field, so anything in it means a bot and nothing is sent
       if (data.company) {
-        fail('Your message did not send. Please email connorptcu@outlook.com directly.');
+        fail('Your message did not send. Please email connor@carryforwardpartners.com directly.');
         return;
       }
       delete data.company;
@@ -430,7 +430,7 @@
           if (s) s.textContent = okText;
         })
         .catch(function () {
-          if (s) s.textContent = 'Your message did not send. Please email connorptcu@outlook.com directly.';
+          if (s) s.textContent = 'Your message did not send. Please email connor@carryforwardpartners.com directly.';
         })
         .finally(function () {
           sending = false;
