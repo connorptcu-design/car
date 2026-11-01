@@ -22,7 +22,7 @@ Compare these across the six marketing pages and report any deviation.
 
 - `<head>`: charset, viewport, `noindex, nofollow`, unique `<title>`, `meta description` present and accurate for that page, favicon and stylesheet paths correct for the page's depth (`assets/` for root pages, `../assets/` for `tools/`, `../../assets/` for `c/<id>/`).
 - Header: logo link, nav link order ("For founders", "For successors", "The tools", "Portal", "How we work", "About"), `aria-current="page"` on exactly the current page and no other, burger button markup identical.
-- Top-right button: label "Book a call", and href exactly `https://scheduler.zoom.us/connor-polan-6bxqga/30-mins-with-carry-forward-partners` with `target="_blank" rel="noopener"`.
+- Top-right button: label "Book a call", and href exactly `https://scheduler.zoom.us/connor-polan-gsqx0q/30-mins-with-connor` with `target="_blank" rel="noopener"`.
 - Footer: link set (each page links to the other pages and not to itself, with Home listed on every page except index), the disclaimer paragraph present and not weakened on any page, `<span id="yr">` and the script that fills it.
 - Scripts: `assets/site.js` loaded on all six marketing pages and at the end of `<body>`; `portal.html` fills the year with its own inline script and does not need `site.js`.
 
