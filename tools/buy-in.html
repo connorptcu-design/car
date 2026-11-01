@@ -406,7 +406,7 @@ function G2BuyIn() {
     }
   }, ioMsg.text), /*#__PURE__*/React.createElement("p", {
     className: "g2-io-note"
-  }, "Files are saved to your own computer. Nothing is sent to us, and anyone who has the file can read your figures.")), /*#__PURE__*/React.createElement("div", {
+  }, "Scenario files are saved to your own computer, and anyone who has the file can read your figures. Separately, the values on this page are saved to your sign-in automatically.")), /*#__PURE__*/React.createElement("div", {
     className: "g2-bar"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, K(m.price)), /*#__PURE__*/React.createElement("span", null, "Your buy-in")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, K(m.debtService)), /*#__PURE__*/React.createElement("span", null, "Annual payment")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", {
     style: {
@@ -799,6 +799,8 @@ function Rng({
 }
 ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(G2BuyIn));
 </script>
+<script src="../assets/cf-save.js"></script>
+<script>CFSave.autoDOM('buy-in', document.getElementById('root'));</script>
 <div id="srStatus" role="status" aria-live="polite" style="position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap"></div>
 <script>
 // Reads the summary bar aloud, politely, a moment after it settles (never on first load).

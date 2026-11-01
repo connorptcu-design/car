@@ -23,6 +23,12 @@ To preview locally, serve the repo root with any static server (e.g. `python -m 
 - `robots.txt` disallows everything and pages carry `noindex`.
 - `cf-worker/worker.js`: Cloudflare Worker (KV namespace `GATE`) for the old emailed-access-code gate. Nothing in the site calls it anymore; treat it as legacy and deployed separately from this repo.
 
+## Per-user saved values
+
+- `functions/api/state.js` is a Cloudflare Pages Function (`/api/state`). It reads the signed-in email only from a verified Cloudflare Access JWT (`Cf-Access-Jwt-Assertion`, checked against the team's certs, issuer and the Client portal app's AUD tag) and stores one JSON row per email per tool in D1 (`db/schema.sql`). Needs the Pages bindings `DB` (D1), `TEAM_DOMAIN` and `POLICY_AUD`, and `/api/*` must be a destination of the Client portal Access app. It does not run on the GitHub Pages copy.
+- `assets/cf-save.js` is loaded by every tool page. `CFSave.connect()` (used by `tools/capacity.html`) saves explicit state; `CFSave.autoDOM()` (used by the three compiled React tools) remembers inputs by aria-label and restores them as they render. If `/api/state` is unreachable it falls back to localStorage and says so in its status pill.
+- `tools/capacity.html` is plain JS (no React), styled with `assets/site.css`.
+
 ## Valuation logic is duplicated, not shared
 
 The same valuation model (owner-adjusted EBITDA → size-tiered base multiple → quality adjustments → clamped to 3.0x–14.0x) is reimplemented in three places and the copies are not wired together:

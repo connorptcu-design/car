@@ -860,7 +860,7 @@ function TransitionProgram() {
     }
   }, ioMsg.text), /*#__PURE__*/React.createElement("p", {
     className: "tp-io-note"
-  }, "Files are saved to your own computer. Nothing is sent to us, and anyone who has the file can read your figures.")), /*#__PURE__*/React.createElement("div", {
+  }, "Scenario files are saved to your own computer, and anyone who has the file can read your figures. Separately, the values on this page are saved to your sign-in automatically.")), /*#__PURE__*/React.createElement("div", {
     className: "tp-bar"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, K(econ.adj)), /*#__PURE__*/React.createElement("span", null, "Owner-adjusted profit")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, econ.mult.toFixed(1), "×"), /*#__PURE__*/React.createElement("span", null, "Blended multiple")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, K(econ.ev)), /*#__PURE__*/React.createElement("span", null, "Enterprise value")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, pct(transfer.score)), /*#__PURE__*/React.createElement("span", null, "Transferability score")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, pct(readiness.p)), /*#__PURE__*/React.createElement("span", null, "Diligence readiness"))), /*#__PURE__*/React.createElement("div", {
     className: "tp-tabs"
@@ -1785,6 +1785,8 @@ function Bench({
 }
 ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(TransitionProgram));
 </script>
+<script src="../assets/cf-save.js"></script>
+<script>CFSave.autoDOM('readiness', document.getElementById('root'));</script>
 <div id="srStatus" role="status" aria-live="polite" style="position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap"></div>
 <script>
 // Reads the summary bar aloud, politely, a moment after it settles (never on first load).

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Capacity Analysis — Carry Forward</title>
+<link rel="icon" href="../assets/favicon.png" />
+<link rel="stylesheet" href="../assets/site.css" />
+<style>
+  .topbar{position:sticky;top:0;z-index:50;background:#0E263C;color:#EAF0F5;font:14px var(--sans);
+    padding:10px 20px;display:flex;justify-content:space-between;align-items:center;gap:14px}
+  .topbar a{color:#EAF0F5;text-decoration:none}
+  .topbar > span{opacity:.66;font-size:12.5px}
+  .tiers{width:100%;border-collapse:collapse;font-size:14px;margin-bottom:18px}
+  .tiers th{font-weight:500;text-align:left;font-size:12.5px;color:var(--muted);padding:0 6px 6px 0}
+  .tiers td{padding:4px 6px 4px 0}
+  .tiers input{width:100%;font:inherit;font-size:14px;padding:7px 8px;border:1px solid var(--rule);border-radius:2px;background:#fff;color:var(--ink)}
+  .tiers input[type=number]{font-variant-numeric:tabular-nums;text-align:right}
+  .hint{font-size:12.5px;color:var(--muted);margin:-8px 0 14px}
+  .yr{width:100%;border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums;margin-top:10px}
+  .yr th,.yr td{padding:7px 6px;border-bottom:1px solid var(--soft);text-align:right}
+  .yr th:first-child,.yr td:first-child{text-align:left}
+  .yr th{font-weight:500;color:var(--muted);font-size:12.5px}
+  .over{color:var(--drag);font-weight:600}
+  .chart{width:100%;height:auto;display:block;margin-top:12px}
+  .wrap{overflow-x:auto}
+  h2.sm{font-size:21px;margin:0 0 4px}
+  body{padding-bottom:64px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="../portal.html" style="display:flex;align-items:center;gap:9px">
+    <img src="../assets/cf-mark-light-sm.png" alt="" style="height:22px;width:auto;display:block" />
+    <span>&larr;&nbsp; Portal</span>
+  </a>
+  <span style="letter-spacing:.05em">Carry Forward &middot; private workspace</span>
+</div>
+
+<main id="content">
+<div class="hero" style="padding:48px 0 40px">
+  <div class="w">
+    <div class="eyebrow">Capacity analysis</div>
+    <h1>Can the team absorb the founder's clients?</h1>
+    <p class="lede">Service hours the households need, against the advisor hours you actually have, year by year as the founder steps back. Replace every default with your own CRM numbers.</p>
+  </div>
+</div>
+
+<section>
+  <div class="w">
+    <div class="calc">
+      <div class="calc-grid">
+        <div>
+          <h2 class="sm">Households and service load</h2>
+          <p class="hint" style="margin:0 0 12px">Annual hours per household includes meetings, prep, follow-up and service requests.</p>
+          <table class="tiers" id="tiers">
+            <thead><tr><th>Tier</th><th style="text-align:right">Households</th><th style="text-align:right">Hours / yr each</th></tr></thead>
+            <tbody></tbody>
+          </table>
+
+          <h2 class="sm" style="margin-top:6px">Team</h2>
+          <div class="f"><label for="founderHrs">Founder's client hours per year, today <output id="o-founderHrs"></output></label>
+            <input type="range" id="founderHrs" min="0" max="2000" step="50" aria-label="Founder client hours today"></div>
+          <div class="f"><label for="founderAfter">Founder's client hours after stepping back <output id="o-founderAfter"></output></label>
+            <input type="range" id="founderAfter" min="0" max="2000" step="50" aria-label="Founder client hours after stepping back"></div>
+          <div class="f"><label for="stepYears">Years to step back <output id="o-stepYears"></output></label>
+            <input type="range" id="stepYears" min="1" max="5" step="1" aria-label="Years to step back"></div>
+          <div class="f"><label for="advisors">Other client-facing advisors <output id="o-advisors"></output></label>
+            <input type="range" id="advisors" min="0" max="12" step="1" aria-label="Other client-facing advisors"></div>
+          <div class="f"><label for="advisorHrs">Client hours per advisor per year <output id="o-advisorHrs"></output></label>
+            <input type="range" id="advisorHrs" min="600" max="1800" step="50" aria-label="Client hours per advisor per year"></div>
+          <div class="f"><label for="supportShare">Share of service work done by support staff <output id="o-supportShare"></output></label>
+            <input type="range" id="supportShare" min="0" max="60" step="5" aria-label="Share of service work done by support staff"></div>
+          <div class="f"><label for="growth">Household growth per year <output id="o-growth"></output></label>
+            <input type="range" id="growth" min="-5" max="15" step="1" aria-label="Household growth per year"></div>
+          <div class="f"><label for="target">Utilization ceiling before service slips <output id="o-target"></output></label>
+            <input type="range" id="target" min="60" max="100" step="5" aria-label="Utilization ceiling"></div>
+        </div>
+
+        <div>
+          <div class="result">
+            <div class="muted small">Advisor utilization today</div>
+            <div class="big" id="r-util"></div>
+            <p class="small muted" id="r-verdict" style="margin:6px 0 12px"></p>
+            <div class="row"><span>Service hours households need</span><b id="r-demand"></b></div>
+            <div class="row"><span>Of which advisors must deliver</span><b id="r-advDemand"></b></div>
+            <div class="row"><span>Advisor hours available</span><b id="r-cap"></b></div>
+            <div class="row"><span>Households per advisor (incl. founder)</span><b id="r-hpa"></b></div>
+            <div class="row"><span>Room for more households today</span><b id="r-headroom"></b></div>
+            <div class="row"><span>First year over the ceiling</span><b id="r-breach"></b></div>
+            <div class="row tot"><span>Advisors to hire by year 5</span><b id="r-hires"></b></div>
+          </div>
+          <svg class="chart" id="chart" viewBox="0 0 420 210" role="img" aria-label="Advisor utilization by year against the ceiling"></svg>
+        </div>
+      </div>
+    </div>
+
+    <h2 style="margin-top:40px">Year by year</h2>
+    <div class="wrap">
+      <table class="yr" id="yr">
+        <thead><tr><th>Year</th><th>Households</th><th>Advisor hours needed</th><th>Founder hours</th><th>Advisor hours available</th><th>Utilization</th><th>Hires needed</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="pull alt" style="margin-top:28px">
+      <b>How to read this</b>
+      Utilization is the advisor hours the households need, after support staff take their share, divided by the hours the advisors have. Above the ceiling, meetings slip and the largest households notice first. Hires are whole advisors at the hours per advisor you set, and assume each new advisor is fully productive, which in practice takes a year or more. Start hiring before the breach year, not in it.
+    </div>
+    <p class="muted small" style="margin-top:22px">A planning model, not an appraisal, and not investment, legal or tax advice. Defaults are placeholders.</p>
+  </div>
+</section>
+
+</main>
+<script src="../assets/cf-save.js"></script>
+<script>
+(function () {
+  'use strict';
+  var DEFAULTS = {
+    tiers: [
+      { name: 'Top tier', hh: 40, hrs: 30 },
+      { name: 'Core', hh: 120, hrs: 12 },
+      { name: 'Other', hh: 200, hrs: 4 }
+    ],
+    founderHrs: 1000, founderAfter: 200, stepYears: 3,
+    advisors: 2, advisorHrs: 1200, supportShare: 25, growth: 5, target: 85
+  };
+  var S = JSON.parse(JSON.stringify(DEFAULTS));
+  var FIELDS = ['founderHrs', 'founderAfter', 'stepYears', 'advisors', 'advisorHrs', 'supportShare', 'growth', 'target'];
+  var saver = null;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var num = function (v, lo, hi, d) { v = Number(v); if (!isFinite(v)) return d; return Math.max(lo, Math.min(hi, v)); };
+  var fmt = function (n) { return Math.round(n).toLocaleString('en-US'); };
+  var pct = function (n) { return Math.round(n * 100) + '%'; };
+  var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }); };
+
+  function sanitize(d) {
+    var o = JSON.parse(JSON.stringify(DEFAULTS));
+    if (!d || typeof d !== 'object') return o;
+    if (Array.isArray(d.tiers) && d.tiers.length) {
+      o.tiers = d.tiers.slice(0, 6).map(function (t, i) {
+        return {
+          name: String((t && t.name) || ('Tier ' + (i + 1))).slice(0, 40),
+          hh: num(t && t.hh, 0, 100000, 0),
+          hrs: num(t && t.hrs, 0, 500, 0)
+        };
+      });
+    }
+    o.founderHrs = num(d.founderHrs, 0, 2000, o.founderHrs);
+    o.founderAfter = num(d.founderAfter, 0, 2000, o.founderAfter);
+    o.stepYears = num(d.stepYears, 1, 5, o.stepYears);
+    o.advisors = num(d.advisors, 0, 12, o.advisors);
+    o.advisorHrs = num(d.advisorHrs, 600, 1800, o.advisorHrs);
+    o.supportShare = num(d.supportShare, 0, 60, o.supportShare);
+    o.growth = num(d.growth, -5, 15, o.growth);
+    o.target = num(d.target, 60, 100, o.target);
+    return o;
+  }
+
+  function model(s) {
+    var support = s.supportShare / 100, g = s.growth / 100, target = s.target / 100;
+    var years = [];
+    for (var y = 0; y <= 5; y++) {
+      var f = Math.pow(1 + g, y), hh = 0, demand = 0;
+      s.tiers.forEach(function (t) { hh += t.hh * f; demand += t.hh * f * t.hrs; });
+      var advDemand = demand * (1 - support);
+      var founder = s.founderHrs - (s.founderHrs - s.founderAfter) * Math.min(y / s.stepYears, 1);
+      var cap = founder + s.advisors * s.advisorHrs;
+      var util = cap > 0 ? advDemand / cap : Infinity;
+      var hires = Math.max(0, Math.ceil((advDemand / target - cap) / s.advisorHrs - 1e-9));
+      years.push({ y: y, hh: hh, demand: demand, advDemand: advDemand, founder: founder, cap: cap, util: util, hires: hires });
+    }
+    var y0 = years[0];
+    var hh0 = y0.hh || 1;
+    var advHrsPerHH = y0.advDemand / hh0;
+    var headroom = advHrsPerHH > 0 ? Math.floor((y0.cap * target - y0.advDemand) / advHrsPerHH) : 0;
+    var breach = null;
+    for (var i = 0; i < years.length; i++) if (years[i].util > target) { breach = years[i].y; break; }
+    var heads = (s.founderHrs > 0 ? 1 : 0) + s.advisors;
+    return { years: years, headroom: headroom, breach: breach, target: target, hpa: heads ? y0.hh / heads : Infinity };
+  }
+
+  function renderTiers() {
+    var tb = $('tiers').tBodies[0];
+    tb.innerHTML = S.tiers.map(function (t, i) {
+      return '<tr>' +
+        '<td><input type="text" data-i="' + i + '" data-k="name" value="' + esc(t.name) + '" aria-label="Tier ' + (i + 1) + ' name" data-nosave></td>' +
+        '<td><input type="number" min="0" step="1" data-i="' + i + '" data-k="hh" value="' + t.hh + '" aria-label="Tier ' + (i + 1) + ' households" data-nosave></td>' +
+        '<td><input type="number" min="0" step="0.5" data-i="' + i + '" data-k="hrs" value="' + t.hrs + '" aria-label="Tier ' + (i + 1) + ' hours per household" data-nosave></td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  function syncInputs() {
+    FIELDS.forEach(function (k) { $(k).value = S[k]; });
+    renderTiers();
+  }
+
+  function label(k) {
+    var v = S[k];
+    if (k === 'supportShare' || k === 'target') return v + '%';
+    if (k === 'growth') return (v > 0 ? '+' : '') + v + '%';
+    if (k === 'stepYears') return v + (v === 1 ? ' year' : ' years');
+    if (k === 'advisors') return String(v);
+    return fmt(v) + ' h';
+  }
+
+  function chart(m) {
+    var W = 420, H = 210, L = 36, R = 12, T = 14, B = 28;
+    var max = Math.max(1.2, m.target + 0.1);
+    m.years.forEach(function (r) { if (isFinite(r.util)) max = Math.max(max, r.util * 1.08); });
+    max = Math.min(max, 3);
+    var bw = (W - L - R) / m.years.length;
+    var Y = function (u) { return T + (H - T - B) * (1 - Math.min(u, max) / max); };
+    var out = '';
+    [0, 0.5, 1, 1.5, 2, 2.5].forEach(function (t) {
+      if (t > max) return;
+      out += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(t) + '" y2="' + Y(t) + '" stroke="#EBEEF2"/>' +
+        '<text x="' + (L - 6) + '" y="' + (Y(t) + 4) + '" text-anchor="end" font-size="10.5" fill="#5B6A7A">' + Math.round(t * 100) + '%</text>';
+    });
+    m.years.forEach(function (r, i) {
+      var u = isFinite(r.util) ? r.util : max, x = L + i * bw + bw * 0.2, w = bw * 0.6;
+      var col = r.util > m.target ? '#8A3B2C' : '#2C6A4F';
+      out += '<rect x="' + x + '" y="' + Y(u) + '" width="' + w + '" height="' + (Y(0) - Y(u)) + '" fill="' + col + '" opacity=".85" rx="1"/>' +
+        '<text x="' + (x + w / 2) + '" y="' + (H - 10) + '" text-anchor="middle" font-size="11" fill="#5B6A7A">' + (i === 0 ? 'Today' : 'Yr ' + i) + '</text>';
+    });
+    out += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(m.target) + '" y2="' + Y(m.target) + '" stroke="#8A6B3E" stroke-width="1.5" stroke-dasharray="5 4"/>' +
+      '<text x="' + (L + 4) + '" y="' + (Y(m.target) - 5) + '" font-size="10.5" fill="#8A6B3E" stroke="#F8F7F4" stroke-width="3" paint-order="stroke">ceiling ' + Math.round(m.target * 100) + '%</text>';
+    $('chart').innerHTML = out;
+  }
+
+  function render() {
+    FIELDS.forEach(function (k) { $('o-' + k).textContent = label(k); });
+    var m = model(S), y0 = m.years[0];
+    $('r-util').textContent = isFinite(y0.util) ? pct(y0.util) : 'No advisor hours';
+    $('r-util').style.color = y0.util > m.target ? 'var(--drag)' : 'var(--gain)';
+    $('r-verdict').textContent = !isFinite(y0.util) ? 'Add advisor hours to see utilization.' :
+      y0.util > m.target ? 'Already over the ceiling: the team is short of hours today.' :
+      m.breach === null ? 'Stays under the ceiling for all five years on these assumptions.' :
+      'Under the ceiling today, over it in year ' + m.breach + '.';
+    $('r-demand').textContent = fmt(y0.demand) + ' h';
+    $('r-advDemand').textContent = fmt(y0.advDemand) + ' h';
+    $('r-cap').textContent = fmt(y0.cap) + ' h';
+    $('r-hpa').textContent = isFinite(m.hpa) ? fmt(m.hpa) : '—';
+    $('r-headroom').textContent = m.headroom >= 0 ? fmt(m.headroom) + ' households' : 'None (' + fmt(-m.headroom) + ' over)';
+    $('r-breach').textContent = m.breach === null ? 'Not within 5 years' : (m.breach === 0 ? 'Today' : 'Year ' + m.breach);
+    $('r-hires').textContent = String(m.years[5].hires);
+    $('yr').tBodies[0].innerHTML = m.years.map(function (r) {
+      var over = r.util > m.target;
+      return '<tr><td>' + (r.y === 0 ? 'Today' : 'Year ' + r.y) + '</td><td>' + fmt(r.hh) + '</td><td>' + fmt(r.advDemand) +
+        '</td><td>' + fmt(r.founder) + '</td><td>' + fmt(r.cap) + '</td><td' + (over ? ' class="over"' : '') + '>' +
+        (isFinite(r.util) ? pct(r.util) : '—') + '</td><td>' + r.hires + '</td></tr>';
+    }).join('');
+    chart(m);
+  }
+
+  function changed() { render(); if (saver) saver.changed(); }
+
+  FIELDS.forEach(function (k) {
+    $(k).addEventListener('input', function (e) { S[k] = Number(e.target.value); changed(); });
+  });
+  $('tiers').addEventListener('input', function (e) {
+    var el = e.target, i = Number(el.getAttribute('data-i')), k = el.getAttribute('data-k');
+    if (!S.tiers[i] || !k) return;
+    S.tiers[i][k] = k === 'name' ? el.value.slice(0, 40) : num(el.value, 0, k === 'hh' ? 100000 : 500, 0);
+    changed();
+  });
+
+  syncInputs();
+  render();
+
+  if (window.CFSave) {
+    window.CFSave.connect({
+      tool: 'capacity',
+      get: function () { return S; },
+      set: function (d) { S = sanitize(d); syncInputs(); render(); }
+    }).then(function (h) { saver = h; });
+  }
+})();
+</script>
+</body>
+</html>
