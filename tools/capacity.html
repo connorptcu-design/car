@@ -86,10 +86,10 @@
             <div class="row"><span>Service hours households need</span><b id="r-demand"></b></div>
             <div class="row"><span>Of which advisors must deliver</span><b id="r-advDemand"></b></div>
             <div class="row"><span>Advisor hours available</span><b id="r-cap"></b></div>
-            <div class="row"><span>Households per advisor (incl. founder)</span><b id="r-hpa"></b></div>
+            <div class="row"><span>Households per advisor (full-time equivalent)</span><b id="r-hpa"></b></div>
             <div class="row"><span>Room for more households today</span><b id="r-headroom"></b></div>
             <div class="row"><span>First year over the ceiling</span><b id="r-breach"></b></div>
-            <div class="row tot"><span>Advisors to hire by year 5</span><b id="r-hires"></b></div>
+            <div class="row tot"><span>Advisors to hire (most needed in any year to 5)</span><b id="r-hires"></b></div>
           </div>
           <svg class="chart" id="chart" viewBox="0 0 420 210" role="img" aria-label="Advisor utilization by year against the ceiling"></svg>
         </div>
@@ -99,7 +99,7 @@
     <h2 style="margin-top:40px">Year by year</h2>
     <div class="wrap">
       <table class="yr" id="yr">
-        <thead><tr><th>Year</th><th>Households</th><th>Advisor hours needed</th><th>Founder hours</th><th>Advisor hours available</th><th>Utilization</th><th>Hires needed</th></tr></thead>
+        <thead><tr><th>Year</th><th>Households</th><th>Advisor hours needed</th><th>Founder hours</th><th>Advisor hours available</th><th>Utilization</th><th>Hires needed (total to date)</th></tr></thead>
         <tbody></tbody>
       </table>
     </div>
@@ -133,7 +133,15 @@
   var $ = function (id) { return document.getElementById(id); };
   var num = function (v, lo, hi, d) { v = Number(v); if (!isFinite(v)) return d; return Math.max(lo, Math.min(hi, v)); };
   var fmt = function (n) { return Math.round(n).toLocaleString('en-US'); };
-  var pct = function (n) { return Math.round(n * 100) + '%'; };
+  // a value counts as over the ceiling only when it is more than rounding noise above it
+  var over = function (u, t) { return u > t + 1e-9; };
+  // whole percent, but one decimal when rounding would make an over-ceiling value look like it is at the ceiling
+  var pct = function (n, t) {
+    var r = Math.round(n * 100);
+    if (t != null && over(n, t) && r <= Math.round(t * 100)) return (Math.round(n * 1000) / 10) + '%';
+    return r + '%';
+  };
+  var snap = function (v, lo, hi, step, d) { v = num(v, lo, hi, d); return Math.max(lo, Math.min(hi, lo + Math.round((v - lo) / step) * step)); };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }); };
 
   function sanitize(d) {
@@ -143,19 +151,19 @@
       o.tiers = d.tiers.slice(0, 6).map(function (t, i) {
         return {
           name: String((t && t.name) || ('Tier ' + (i + 1))).slice(0, 40),
-          hh: num(t && t.hh, 0, 100000, 0),
-          hrs: num(t && t.hrs, 0, 500, 0)
+          hh: Math.round(num(t && t.hh, 0, 100000, 0)),
+          hrs: Math.round(num(t && t.hrs, 0, 500, 0) * 2) / 2
         };
       });
     }
-    o.founderHrs = num(d.founderHrs, 0, 2000, o.founderHrs);
-    o.founderAfter = num(d.founderAfter, 0, 2000, o.founderAfter);
-    o.stepYears = num(d.stepYears, 1, 5, o.stepYears);
-    o.advisors = num(d.advisors, 0, 12, o.advisors);
-    o.advisorHrs = num(d.advisorHrs, 600, 1800, o.advisorHrs);
-    o.supportShare = num(d.supportShare, 0, 60, o.supportShare);
-    o.growth = num(d.growth, -5, 15, o.growth);
-    o.target = num(d.target, 60, 100, o.target);
+    o.founderHrs = snap(d.founderHrs, 0, 2000, 50, o.founderHrs);
+    o.founderAfter = snap(d.founderAfter, 0, 2000, 50, o.founderAfter);
+    o.stepYears = snap(d.stepYears, 1, 5, 1, o.stepYears);
+    o.advisors = snap(d.advisors, 0, 12, 1, o.advisors);
+    o.advisorHrs = snap(d.advisorHrs, 600, 1800, 50, o.advisorHrs);
+    o.supportShare = snap(d.supportShare, 0, 60, 5, o.supportShare);
+    o.growth = snap(d.growth, -5, 15, 1, o.growth);
+    o.target = snap(d.target, 60, 100, 5, o.target);
     return o;
   }
 
@@ -168,18 +176,21 @@
       var advDemand = demand * (1 - support);
       var founder = s.founderHrs - (s.founderHrs - s.founderAfter) * Math.min(y / s.stepYears, 1);
       var cap = founder + s.advisors * s.advisorHrs;
-      var util = cap > 0 ? advDemand / cap : Infinity;
+      var util = cap > 0 ? advDemand / cap : (advDemand > 0 ? Infinity : 0);
       var hires = Math.max(0, Math.ceil((advDemand / target - cap) / s.advisorHrs - 1e-9));
       years.push({ y: y, hh: hh, demand: demand, advDemand: advDemand, founder: founder, cap: cap, util: util, hires: hires });
     }
     var y0 = years[0];
     var hh0 = y0.hh || 1;
     var advHrsPerHH = y0.advDemand / hh0;
-    var headroom = advHrsPerHH > 0 ? Math.floor((y0.cap * target - y0.advDemand) / advHrsPerHH) : 0;
+    var headroom = advHrsPerHH > 0 ? Math.floor((y0.cap * target - y0.advDemand) / advHrsPerHH + 1e-9) : null;
     var breach = null;
-    for (var i = 0; i < years.length; i++) if (years[i].util > target) { breach = years[i].y; break; }
-    var heads = (s.founderHrs > 0 ? 1 : 0) + s.advisors;
-    return { years: years, headroom: headroom, breach: breach, target: target, hpa: heads ? y0.hh / heads : Infinity };
+    for (var i = 0; i < years.length; i++) if (over(years[i].util, target)) { breach = years[i].y; break; }
+    // households per full-time-equivalent advisor: the founder counts only for the hours they work
+    var fte = y0.cap / s.advisorHrs;
+    var peakHires = 0;
+    years.forEach(function (r) { peakHires = Math.max(peakHires, r.hires); });
+    return { years: years, headroom: headroom, breach: breach, target: target, peakHires: peakHires, hpa: fte > 0 ? y0.hh / fte : Infinity };
   }
 
   function renderTiers() {
@@ -187,8 +198,8 @@
     tb.innerHTML = S.tiers.map(function (t, i) {
       return '<tr>' +
         '<td><input type="text" data-i="' + i + '" data-k="name" value="' + esc(t.name) + '" aria-label="Tier ' + (i + 1) + ' name" data-nosave></td>' +
-        '<td><input type="number" min="0" step="1" data-i="' + i + '" data-k="hh" value="' + t.hh + '" aria-label="Tier ' + (i + 1) + ' households" data-nosave></td>' +
-        '<td><input type="number" min="0" step="0.5" data-i="' + i + '" data-k="hrs" value="' + t.hrs + '" aria-label="Tier ' + (i + 1) + ' hours per household" data-nosave></td>' +
+        '<td><input type="number" min="0" max="100000" step="1" data-i="' + i + '" data-k="hh" value="' + t.hh + '" aria-label="Tier ' + (i + 1) + ' households" data-nosave></td>' +
+        '<td><input type="number" min="0" max="500" step="0.5" data-i="' + i + '" data-k="hrs" value="' + t.hrs + '" aria-label="Tier ' + (i + 1) + ' hours per household" data-nosave></td>' +
         '</tr>';
     }).join('');
   }
@@ -222,7 +233,7 @@
     });
     m.years.forEach(function (r, i) {
       var u = isFinite(r.util) ? r.util : max, x = L + i * bw + bw * 0.2, w = bw * 0.6;
-      var col = r.util > m.target ? '#8A3B2C' : '#2C6A4F';
+      var col = over(r.util, m.target) ? '#8A3B2C' : '#2C6A4F';
       out += '<rect x="' + x + '" y="' + Y(u) + '" width="' + w + '" height="' + (Y(0) - Y(u)) + '" fill="' + col + '" opacity=".85" rx="1"/>' +
         '<text x="' + (x + w / 2) + '" y="' + (H - 10) + '" text-anchor="middle" font-size="11" fill="#5B6A7A">' + (i === 0 ? 'Today' : 'Yr ' + i) + '</text>';
     });
@@ -234,24 +245,25 @@
   function render() {
     FIELDS.forEach(function (k) { $('o-' + k).textContent = label(k); });
     var m = model(S), y0 = m.years[0];
-    $('r-util').textContent = isFinite(y0.util) ? pct(y0.util) : 'No advisor hours';
-    $('r-util').style.color = y0.util > m.target ? 'var(--drag)' : 'var(--gain)';
-    $('r-verdict').textContent = !isFinite(y0.util) ? 'Add advisor hours to see utilization.' :
-      y0.util > m.target ? 'Already over the ceiling: the team is short of hours today.' :
+    $('r-util').textContent = isFinite(y0.util) ? pct(y0.util, m.target) : 'No advisor hours';
+    $('r-util').style.color = over(y0.util, m.target) ? 'var(--drag)' : 'var(--gain)';
+    $('r-verdict').textContent = y0.demand === 0 ? 'Enter households and hours per household to see utilization.' :
+      !isFinite(y0.util) ? 'Add advisor hours to see utilization.' :
+      over(y0.util, m.target) ? 'Already over the ceiling: the team is short of hours today.' :
       m.breach === null ? 'Stays under the ceiling for all five years on these assumptions.' :
       'Under the ceiling today, over it in year ' + m.breach + '.';
     $('r-demand').textContent = fmt(y0.demand) + ' h';
     $('r-advDemand').textContent = fmt(y0.advDemand) + ' h';
     $('r-cap').textContent = fmt(y0.cap) + ' h';
     $('r-hpa').textContent = isFinite(m.hpa) ? fmt(m.hpa) : '—';
-    $('r-headroom').textContent = m.headroom >= 0 ? fmt(m.headroom) + ' households' : 'None (' + fmt(-m.headroom) + ' over)';
-    $('r-breach').textContent = m.breach === null ? 'Not within 5 years' : (m.breach === 0 ? 'Today' : 'Year ' + m.breach);
-    $('r-hires').textContent = String(m.years[5].hires);
+    $('r-headroom').textContent = m.headroom === null ? 'Enter a service load first' : m.headroom >= 0 ? fmt(m.headroom) + ' households' : 'None (' + fmt(-m.headroom) + ' over)';
+    $('r-breach').textContent = y0.demand === 0 ? '—' : m.breach === null ? 'Not within 5 years' : (m.breach === 0 ? 'Today' : 'Year ' + m.breach);
+    $('r-hires').textContent = String(m.peakHires);
     $('yr').tBodies[0].innerHTML = m.years.map(function (r) {
-      var over = r.util > m.target;
+      var isOver = over(r.util, m.target);
       return '<tr><td>' + (r.y === 0 ? 'Today' : 'Year ' + r.y) + '</td><td>' + fmt(r.hh) + '</td><td>' + fmt(r.advDemand) +
-        '</td><td>' + fmt(r.founder) + '</td><td>' + fmt(r.cap) + '</td><td' + (over ? ' class="over"' : '') + '>' +
-        (isFinite(r.util) ? pct(r.util) : '—') + '</td><td>' + r.hires + '</td></tr>';
+        '</td><td>' + fmt(r.founder) + '</td><td>' + fmt(r.cap) + '</td><td' + (isOver ? ' class="over"' : '') + '>' +
+        (isFinite(r.util) ? pct(r.util, m.target) : '—') + '</td><td>' + r.hires + '</td></tr>';
     }).join('');
     chart(m);
   }
@@ -264,8 +276,13 @@
   $('tiers').addEventListener('input', function (e) {
     var el = e.target, i = Number(el.getAttribute('data-i')), k = el.getAttribute('data-k');
     if (!S.tiers[i] || !k) return;
-    S.tiers[i][k] = k === 'name' ? el.value.slice(0, 40) : num(el.value, 0, k === 'hh' ? 100000 : 500, 0);
+    S.tiers[i][k] = k === 'name' ? el.value.slice(0, 40) : k === 'hh' ? Math.round(num(el.value, 0, 100000, 0)) : Math.round(num(el.value, 0, 500, 0) * 2) / 2;
     changed();
+  });
+  // the typed text can differ from the stored value (clamped, rounded); show the stored one when the box is left
+  $('tiers').addEventListener('change', function (e) {
+    var el = e.target, i = Number(el.getAttribute('data-i')), k = el.getAttribute('data-k');
+    if (S.tiers[i] && k && k !== 'name') el.value = S.tiers[i][k];
   });
 
   syncInputs();
