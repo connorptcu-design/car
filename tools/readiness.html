@@ -99,11 +99,11 @@ function checkScenario(doc, tool, fields, current) {
 const SCENARIO_FIELDS = [
   { key: "fmodel", label: "Firm model", kind: "opt", options: ["solo", "silo", "ensemble", "enterprise"] },
   { key: "rev", label: "Revenue", kind: "num", min: 500, max: 50000 },
-  { key: "households", label: "Client households", kind: "num", min: 40, max: s => clamp(Math.round(s.rev / 3), 400, 20000) },
-  { key: "leads", label: "Lead advisors", kind: "num", min: 1, max: s => clamp(Math.ceil(s.rev / 350), 8, 60) },
-  { key: "assoc", label: "Associate advisors and planners", kind: "num", min: 0, max: s => clamp(Math.ceil(s.rev / 350), 8, 60) },
-  { key: "service", label: "Client service associates", kind: "num", min: 0, max: s => clamp(Math.ceil(s.rev / 280), 10, 75) },
-  { key: "ops", label: "Operations and administration", kind: "num", min: 0, max: s => clamp(Math.ceil(s.rev / 470), 6, 45) },
+  { key: "households", label: "Client households", kind: "num", min: 40, max: 20000 },
+  { key: "leads", label: "Lead advisors", kind: "num", min: 1, max: 60 },
+  { key: "assoc", label: "Associate advisors and planners", kind: "num", min: 0, max: 60 },
+  { key: "service", label: "Client service associates", kind: "num", min: 0, max: 75 },
+  { key: "ops", label: "Operations and administration", kind: "num", min: 0, max: 45 },
   { key: "leadership", label: "Leadership in place", kind: "bool" },
   { key: "g2Owner", label: "Next generation owns relationships", kind: "bool" },
   { key: "buySell", label: "Buy-sell in place", kind: "bool" },
@@ -117,10 +117,10 @@ const SCENARIO_FIELDS = [
   { key: "docService", label: "Documented service model", kind: "bool" },
   { key: "crmNotes", label: "CRM notes", kind: "bool" },
   { key: "nonSolicit", label: "Signed non-solicits", kind: "bool" },
-  { key: "ownerComp", label: "Total compensation to owners", kind: "num", min: 0, max: s => Math.max(500, Math.round(s.rev * 0.7)) },
-  { key: "otherExp", label: "All other operating expenses", kind: "num", min: 0, max: s => Math.max(500, Math.round(s.rev * 0.9)) },
-  { key: "personalExp", label: "Personal expenses running through the business", kind: "num", min: 0, max: s => Math.max(100, Math.round(s.rev * 0.1)) },
-  { key: "oneTime", label: "One-time and non-recurring costs", kind: "num", min: 0, max: s => Math.max(100, Math.round(s.rev * 0.1)) },
+  { key: "ownerComp", label: "Total compensation to owners", kind: "num", min: 0, max: 35000 },
+  { key: "otherExp", label: "All other operating expenses", kind: "num", min: 0, max: 45000 },
+  { key: "personalExp", label: "Personal expenses running through the business", kind: "num", min: 0, max: 5000 },
+  { key: "oneTime", label: "One-time and non-recurring costs", kind: "num", min: 0, max: 5000 },
   { key: "ownerProd", label: "Revenue the owners personally produce", kind: "num", min: 0, max: s => s.rev },
   { key: "stake", label: "Share of equity being sold in this tranche", kind: "num", min: 5, max: 100 },
   { key: "loanYears", label: "Financing term", kind: "num", min: 5, max: 15 },
@@ -158,6 +158,9 @@ const niceStep = v => {
 };
 const logVal = (pos, lo, hi) => niceStep(lo * Math.pow(hi / lo, pos / 1000));
 const logPos = (val, lo, hi) => 1000 * Math.log(clamp(val, lo, hi) / lo) / Math.log(hi / lo);
+// Curved scale that can start at zero. `a` sets how much of the track the small values get.
+const zlogVal = (pos, hi, a, step) => clamp(Math.round(a * (Math.pow(1 + hi / a, pos / 1000) - 1) / step) * step, 0, hi);
+const zlogPos = (val, hi, a) => 1000 * Math.log(1 + clamp(val, 0, hi) / a) / Math.log(1 + hi / a);
 const K = n => {
   const v = n * 1000;
   const a = Math.abs(v), s = v < 0 ? "−" : "";
@@ -914,8 +917,9 @@ function TransitionProgram() {
     unit: "num",
     v: households,
     set: setHouseholds,
+    log: true,
     min: 40,
-    max: clamp(Math.round(rev / 3), 400, 20000),
+    max: 20000,
     step: 10,
     d: households
   }), /*#__PURE__*/React.createElement(Rng, {
@@ -924,7 +928,7 @@ function TransitionProgram() {
     v: leads,
     set: setLeads,
     min: 1,
-    max: clamp(Math.ceil(rev / 350), 8, 60),
+    max: 60,
     step: 1,
     d: leads
   }), /*#__PURE__*/React.createElement(Rng, {
@@ -933,7 +937,7 @@ function TransitionProgram() {
     v: assoc,
     set: setAssoc,
     min: 0,
-    max: clamp(Math.ceil(rev / 350), 8, 60),
+    max: 60,
     step: 1,
     d: assoc
   }), /*#__PURE__*/React.createElement(Rng, {
@@ -942,7 +946,7 @@ function TransitionProgram() {
     v: service,
     set: setService,
     min: 0,
-    max: clamp(Math.ceil(rev / 280), 10, 75),
+    max: 75,
     step: 1,
     d: service
   }), /*#__PURE__*/React.createElement(Rng, {
@@ -951,7 +955,7 @@ function TransitionProgram() {
     v: ops,
     set: setOps,
     min: 0,
-    max: clamp(Math.ceil(rev / 470), 6, 45),
+    max: 45,
     step: 1,
     d: ops
   }), /*#__PURE__*/React.createElement(Rng, {
@@ -1107,7 +1111,8 @@ function TransitionProgram() {
     v: ownerComp,
     set: setOwnerComp,
     min: 0,
-    max: Math.max(500, Math.round(rev * 0.7)),
+    zlog: 500,
+    max: 35000,
     step: 25,
     d: K(ownerComp)
   }), /*#__PURE__*/React.createElement(Rng, {
@@ -1116,7 +1121,9 @@ function TransitionProgram() {
     v: ownerProd,
     set: setOwnerProd,
     min: 0,
-    max: rev,
+    zlog: 500,
+    max: 50000,
+    limit: rev,
     step: 25,
     d: K(ownerProd)
   }), /*#__PURE__*/React.createElement(Rng, {
@@ -1125,7 +1132,8 @@ function TransitionProgram() {
     v: otherExp,
     set: setOtherExp,
     min: 0,
-    max: Math.max(500, Math.round(rev * 0.9)),
+    zlog: 500,
+    max: 45000,
     step: 25,
     d: K(otherExp)
   }), /*#__PURE__*/React.createElement(Rng, {
@@ -1134,7 +1142,8 @@ function TransitionProgram() {
     v: personalExp,
     set: setPersonalExp,
     min: 0,
-    max: Math.max(100, Math.round(rev * 0.1)),
+    zlog: 50,
+    max: 5000,
     step: 5,
     d: K(personalExp)
   }), /*#__PURE__*/React.createElement(Rng, {
@@ -1143,7 +1152,8 @@ function TransitionProgram() {
     v: oneTime,
     set: setOneTime,
     min: 0,
-    max: Math.max(100, Math.round(rev * 0.1)),
+    zlog: 50,
+    max: 5000,
     step: 5,
     d: K(oneTime)
   })), /*#__PURE__*/React.createElement("div", {
@@ -1683,8 +1693,12 @@ function Rng({
   max,
   step,
   unit,
-  log
+  log,
+  zlog,
+  limit
 }) {
+  // the track (min..max) never changes with other inputs; `limit` only caps the value
+  const cap = limit != null ? Math.min(max, limit) : max;
   const scale = unit === "k" ? 1000 : unit === "m" ? 1000000 : 1;
   const fmt = raw => {
     if (unit === "k" || unit === "m") return commas(Math.round(raw));
@@ -1702,7 +1716,7 @@ function Rng({
       setTxt(fmt(v * scale));
       return;
     }
-    const next = clamp(parsed / scale, min, max);
+    const next = clamp(parsed / scale, min, cap);
     set(next);
     setTxt(fmt(next * scale));
   };
@@ -1735,11 +1749,11 @@ function Rng({
     className: "tp-aff"
   }, affixPost))), /*#__PURE__*/React.createElement("input", {
     type: "range",
-    min: log ? 0 : min,
-    max: log ? 1000 : max,
-    step: log ? 1 : step,
-    value: log ? logPos(v, min, max) : v,
-    onChange: e => set(log ? logVal(Number(e.target.value), min, max) : Number(e.target.value)),
+    min: log || zlog ? 0 : min,
+    max: log || zlog ? 1000 : max,
+    step: log || zlog ? 1 : step,
+    value: zlog ? zlogPos(v, max, zlog) : log ? logPos(v, min, max) : v,
+    onChange: e => set(zlog ? Math.min(cap, zlogVal(Number(e.target.value), max, zlog, step)) : log ? Math.min(cap, logVal(Number(e.target.value), min, max)) : Number(e.target.value)),
     "aria-label": label,
     "aria-valuetext": (affixPre || "") + fmt(v * scale) + (affixPost || "")
   }));
@@ -1786,7 +1800,7 @@ function Bench({
 ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(TransitionProgram));
 </script>
 <script src="../assets/cf-save.js"></script>
-<script>CFSave.autoDOM('readiness', document.getElementById('root'));</script>
+<script>CFSave.autoDOM('readiness-2', document.getElementById('root'));</script>
 <div id="srStatus" role="status" aria-live="polite" style="position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap"></div>
 <script>
 // Reads the summary bar aloud, politely, a moment after it settles (never on first load).
